@@ -6,19 +6,20 @@ public enum StatusCode
     BadRequest = 400,
     NotFound = 404,
     Created = 201,
-    NoContent = 204
+    NoContent = 204,
+    Conflict = 409,
 }
 
 public class Result<T>
 {
-    public bool isSuccess { get; }
+    public bool IsSuccess { get; }
     public string Message { get; }
     public T? Value { get; }
     public StatusCode StatusCode { get; }
 
     private Result(bool success, T? value, string message, StatusCode statusCode)
     {
-        isSuccess = success;
+        IsSuccess = success;
         Value = value;
         Message = message;
         StatusCode = statusCode; 

@@ -12,6 +12,16 @@ public class ProductRepository : IProductRepository
         _dbContext = dbContext;
     }
 
+    public async Task<Product> AddProductAsync(Product product)
+    {
+        product.IsActive = true;
+        product.CreatedAt = DateTime.UtcNow; ;
+        _dbContext.Products.Add(product);
+        await _dbContext.SaveChangesAsync();
+
+        return product;
+    }
+
     public async Task<Product?> GetProductByIdAsync(Guid id)
     {
         return await _dbContext.Products.FirstOrDefaultAsync(item => item.Id == id);
@@ -20,6 +30,15 @@ public class ProductRepository : IProductRepository
     public async Task<IEnumerable<Product>> GetProductsAsync()
     {
         return await _dbContext.Products.Where(item => item.IsActive == true).ToListAsync();
+    }
+
+    public async Task<bool> IsProductValid(Product product)
+    {
+        Category? category = await _dbContext.Categories.FindAsync(product.CategoryId);
+        if (await _dbContext.Products.AnyAsync(item => item.Name == product.Name || item.Description == product.Description || item.StockKeepingUnit == product.StockKeepingUnit) || category == null){
+            return false;
+        }
+        return true;
     }
 
     public async Task<bool> UpdateProductAsync(Product product, Guid id)
@@ -34,6 +53,7 @@ public class ProductRepository : IProductRepository
         existingProduct.Description = product.Description;
         existingProduct.Name = product.Name;
         existingProduct.UpdatedAt = DateTime.Now;
+        await _dbContext.SaveChangesAsync();
 
         return true; 
     }

@@ -23,5 +23,16 @@ public static class ProductMapper
             Description = product.Description,
         };
     }
-    
+
+    public static Product ToProduct(this ProductAddRequest product)
+    {
+        return new Product()
+        {
+            Name = product.Name,
+            Description = product.Description,
+            StockKeepingUnit = product.StockKeepingUnit,
+            CategoryId = product.CategoryId,
+            Manufacturer = product.Manufacturer,
+        };
+    }
 }

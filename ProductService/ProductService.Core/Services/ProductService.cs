@@ -14,6 +14,18 @@ public class ProductService : IProductService
         _productRepo = productRepo;
     }
 
+    public async Task<Result<ProductResponse>> AddProductAsync(ProductAddRequest product)
+    {
+        if(!await _productRepo.IsProductValid(product.ToProduct()))
+        {
+            return Result<ProductResponse>.Failure("Product is not unique. Change data to create new product", StatusCode.Conflict);
+        }
+
+        Product newProduct = await _productRepo.AddProductAsync(product.ToProduct());
+
+        return Result<ProductResponse>.Success(newProduct.ToProductResponse());
+    }
+
     public async Task<Result<ProductResponse>> GetProductByIdAsync(Guid id)
     {
         if (id == Guid.Empty)
@@ -36,20 +48,20 @@ public class ProductService : IProductService
         return products.Select(item => item.ToProductResponse());
     }
 
-    public async Task<Result<ProductResponse>> UpdateProductAsync(ProductUpdateRequest product, Guid id)
+    public async Task<Result<ProductUpdateRequest>> UpdateProductAsync(ProductUpdateRequest product, Guid id)
     {
         if(product.Id != id)
         {
-            return Result<ProductResponse>.Failure("Error: Id of the product is not equal to id", StatusCode.BadRequest);
+            return Result<ProductUpdateRequest>.Failure("Error: Id of the product is not equal to id", StatusCode.BadRequest);
         }
 
         bool isModified = await _productRepo.UpdateProductAsync(product.ToProduct(), id);
 
         if (!isModified)
         {
-            return Result<ProductResponse>.Failure("Error: Product not found", StatusCode.NotFound);
+            return Result<ProductUpdateRequest>.Failure("Error: Product not found", StatusCode.NotFound);
         }
 
-        return Result<ProductResponse>.SuccessResult("Product successfully updated!");
+        return Result<ProductUpdateRequest>.SuccessResult("Product successfully updated!");
     }
 }

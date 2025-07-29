@@ -35,7 +35,7 @@ public class ProductsController : ControllerBase
     {
         Result<ProductResponse> result = await _productService.GetProductByIdAsync(id);
 
-        if (result.isSuccess == false)
+        if (result.IsSuccess == false)
         {
             return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
         }
@@ -44,12 +44,11 @@ public class ProductsController : ControllerBase
     }
 
     // PUT: api/Products/5
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
     public async Task<IActionResult> PutProduct(Guid id, ProductUpdateRequest product)
     {
-        Result<ProductResponse> result = await _productService.UpdateProductAsync(product, id);
-        if (!result.isSuccess)
+        Result<ProductUpdateRequest> result = await _productService.UpdateProductAsync(product, id);
+        if (!result.IsSuccess)
         {
             return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
         }
@@ -57,14 +56,17 @@ public class ProductsController : ControllerBase
     }
 
     // POST: api/Products
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    public async Task<ActionResult<Product>> PostProduct(Product product)
+    public async Task<ActionResult<ProductResponse>> PostProduct(ProductAddRequest product)
     {
-        _context.Products.Add(product);
-        await _context.SaveChangesAsync();
+        Result<ProductResponse> result = await _productService.AddProductAsync(product);
 
-        return CreatedAtAction("GetProduct", new { id = product.Id }, product);
+        if (!result.IsSuccess)
+        {
+            return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
+        }
+
+        return CreatedAtAction("GetProductById", new { id = result.Value!.Id });
     }
 
     // DELETE: api/Products/5
@@ -81,10 +83,5 @@ public class ProductsController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
-    }
-
-    private bool ProductExists(Guid id)
-    {
-        return _context.Products.Any(e => e.Id == id);
     }
 }
