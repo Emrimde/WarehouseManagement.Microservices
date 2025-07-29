@@ -1,24 +1,17 @@
-using Microsoft.EntityFrameworkCore;
-using ProductService.Infrastructure.DatabaseContext;
+using ProductService.Core;
+using ProductService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 DotNetEnv.Env.Load();
-string host = Environment.GetEnvironmentVariable("HOST")!;
-string username = Environment.GetEnvironmentVariable("USERNAME")!;
-string password = Environment.GetEnvironmentVariable("PASSWORD")!;
-string database = Environment.GetEnvironmentVariable("DATABASE")!;
-
-string connectionString = $"Host={host};Username={username};Password={password};Database={database}";
 
 // Add services to the container.
 builder.Services.AddControllers(); // dodanie kontrolerów do kontenera Dependency Injection 
 builder.Services.AddEndpointsApiExplorer(); // dodanie eksploratora punktów koñcowych
 builder.Services.AddSwaggerGen(); // dodanie Swaggera do kontenera Dependency Injection
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    options.UseNpgsql(connectionString);
-});
+
+builder.Services.AddInfrastructure();
+builder.Services.AddCore();
 
 var app = builder.Build();
 
