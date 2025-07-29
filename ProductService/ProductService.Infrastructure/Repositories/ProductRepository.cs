@@ -22,6 +22,18 @@ public class ProductRepository : IProductRepository
         return product;
     }
 
+    public async Task<bool> DeleteProduct(Guid id)
+    {
+        Product? product = await GetProductByIdAsync(id);
+        if (product == null) {
+            return false;
+        }
+        product.IsActive = false;
+        await _dbContext.SaveChangesAsync();
+
+        return true;
+    }
+
     public async Task<Product?> GetProductByIdAsync(Guid id)
     {
         return await _dbContext.Products.FirstOrDefaultAsync(item => item.Id == id);

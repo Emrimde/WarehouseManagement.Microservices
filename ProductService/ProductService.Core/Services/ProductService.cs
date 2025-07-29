@@ -26,6 +26,23 @@ public class ProductService : IProductService
         return Result<ProductResponse>.Success(newProduct.ToProductResponse());
     }
 
+    public async Task<Result<ProductResponse>> DeleteProduct(Guid id)
+    {
+        if(id == Guid.Empty)
+        {
+            return Result<ProductResponse>.Failure("Invalid id", StatusCode.BadRequest);
+        }
+
+        bool isDeleted = await _productRepo.DeleteProduct(id);
+
+        if (!isDeleted) 
+        {
+            return Result<ProductResponse>.Failure("The product don't exist", StatusCode.NotFound);
+        }
+
+        return Result<ProductResponse>.SuccessResult("Deleted succesfully!");
+    }
+
     public async Task<Result<ProductResponse>> GetProductByIdAsync(Guid id)
     {
         if (id == Guid.Empty)

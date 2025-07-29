@@ -73,15 +73,11 @@ public class ProductsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProduct(Guid id)
     {
-        var product = await _context.Products.FindAsync(id);
-        if (product == null)
+        Result<ProductResponse> result = await _productService.DeleteProduct(id);
+        if (!result.IsSuccess)
         {
-            return NotFound();
+            return Problem(detail: result.Message,statusCode: (int)result.StatusCode);
         }
-
-        _context.Products.Remove(product);
-        await _context.SaveChangesAsync();
-
         return NoContent();
     }
 }

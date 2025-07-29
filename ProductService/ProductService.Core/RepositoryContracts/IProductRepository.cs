@@ -8,4 +8,5 @@ public interface IProductRepository
     Task<bool> UpdateProductAsync(Product product, Guid id);
     Task<Product> AddProductAsync(Product product);
     Task<bool> IsProductValid(Product product);
+    Task<bool> DeleteProduct(Guid id);
 }
