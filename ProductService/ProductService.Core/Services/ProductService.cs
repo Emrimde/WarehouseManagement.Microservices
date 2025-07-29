@@ -14,14 +14,14 @@ public class ProductService : IProductService
         _productRepo = productRepo;
     }
 
-    public async Task<Result<ProductResponse>> GetProductById(Guid id)
+    public async Task<Result<ProductResponse>> GetProductByIdAsync(Guid id)
     {
         if (id == Guid.Empty)
         {
             return Result<ProductResponse>.Failure("Incorrect id", StatusCode.BadRequest);
         }
 
-        Product? product = await _productRepo.GetProductById(id);
+        Product? product = await _productRepo.GetProductByIdAsync(id);
         if (product == null)
         {
             return Result<ProductResponse>.Failure("Product not found", StatusCode.NotFound);
@@ -30,9 +30,26 @@ public class ProductService : IProductService
         return Result<ProductResponse>.Success(product.ToProductResponse());
     }
 
-    public async Task<IEnumerable<ProductResponse>> GetProducts()
+    public async Task<IEnumerable<ProductResponse>> GetProductsAsync()
     {
-        IEnumerable<Product> products = await _productRepo.GetProducts();
+        IEnumerable<Product> products = await _productRepo.GetProductsAsync();
         return products.Select(item => item.ToProductResponse());
+    }
+
+    public async Task<Result<ProductResponse>> UpdateProductAsync(ProductUpdateRequest product, Guid id)
+    {
+        if(product.Id != id)
+        {
+            return Result<ProductResponse>.Failure("Error: Id of the product is not equal to id", StatusCode.BadRequest);
+        }
+
+        bool isModified = await _productRepo.UpdateProductAsync(product.ToProduct(), id);
+
+        if (!isModified)
+        {
+            return Result<ProductResponse>.Failure("Error: Product not found", StatusCode.NotFound);
+        }
+
+        return Result<ProductResponse>.SuccessResult("Product successfully updated!");
     }
 }

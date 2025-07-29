@@ -3,6 +3,7 @@
 namespace ProductService.Core.RepositoryContracts;
 public interface IProductRepository
 {
-    Task<IEnumerable<Product>> GetProducts();
-    Task<Product?> GetProductById(Guid id);
+    Task<IEnumerable<Product>> GetProductsAsync();
+    Task<Product?> GetProductByIdAsync(Guid id);
+    Task<bool> UpdateProductAsync(Product product, Guid id);
 }

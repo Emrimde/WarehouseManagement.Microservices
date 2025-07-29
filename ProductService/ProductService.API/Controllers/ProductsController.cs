@@ -25,7 +25,7 @@ public class ProductsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProductResponse>>> GetProducts()
     {
-        IEnumerable<ProductResponse> products = await _productService.GetProducts();
+        IEnumerable<ProductResponse> products = await _productService.GetProductsAsync();
         return Ok(products);
     }
 
@@ -33,7 +33,7 @@ public class ProductsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductResponse>> GetProductById(Guid id)
     {
-        Result<ProductResponse> result = await _productService.GetProductById(id);
+        Result<ProductResponse> result = await _productService.GetProductByIdAsync(id);
 
         if (result.isSuccess == false)
         {
@@ -46,31 +46,13 @@ public class ProductsController : ControllerBase
     // PUT: api/Products/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutProduct(Guid id, Product product)
+    public async Task<IActionResult> PutProduct(Guid id, ProductUpdateRequest product)
     {
-        if (id != product.Id)
+        Result<ProductResponse> result = await _productService.UpdateProductAsync(product, id);
+        if (!result.isSuccess)
         {
-            return BadRequest();
+            return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
         }
-
-        _context.Entry(product).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!ProductExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
         return NoContent();
     }
 

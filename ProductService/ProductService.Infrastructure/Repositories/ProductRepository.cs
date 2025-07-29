@@ -12,13 +12,29 @@ public class ProductRepository : IProductRepository
         _dbContext = dbContext;
     }
 
-    public async Task<Product?> GetProductById(Guid id)
+    public async Task<Product?> GetProductByIdAsync(Guid id)
     {
         return await _dbContext.Products.FirstOrDefaultAsync(item => item.Id == id);
     }
 
-    public async Task<IEnumerable<Product>> GetProducts()
+    public async Task<IEnumerable<Product>> GetProductsAsync()
     {
         return await _dbContext.Products.Where(item => item.IsActive == true).ToListAsync();
+    }
+
+    public async Task<bool> UpdateProductAsync(Product product, Guid id)
+    {
+        Product? existingProduct = await GetProductByIdAsync(id);
+
+        if (existingProduct == null)
+        {
+            return false;
+        }
+
+        existingProduct.Description = product.Description;
+        existingProduct.Name = product.Name;
+        existingProduct.UpdatedAt = DateTime.Now;
+
+        return true; 
     }
 }
