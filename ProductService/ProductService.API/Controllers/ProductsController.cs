@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProductService.Core.Domain.Entities;
 using ProductService.Core.DTO;
+using ProductService.Core.Result;
 using ProductService.Core.ServiceContracts;
 using ProductService.Infrastructure.DatabaseContext;
 
@@ -30,16 +31,16 @@ public class ProductsController : ControllerBase
 
     // GET: api/Products/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Product>> GetProduct(Guid id)
+    public async Task<ActionResult<ProductResponse>> GetProductById(Guid id)
     {
-        var product = await _context.Products.FindAsync(id);
+        Result<ProductResponse> result = await _productService.GetProductById(id);
 
-        if (product == null)
+        if (result.isSuccess == false)
         {
-            return NotFound();
+            return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
         }
 
-        return product;
+        return Ok(result.Value!);
     }
 
     // PUT: api/Products/5
