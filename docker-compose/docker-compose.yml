@@ -1,0 +1,33 @@
+services:
+    product-microservice:
+        image: kkrzysztofapplications/warehouse-product-service:latest
+        environment:
+            - HOST=db
+            - USERNAME=postgres
+            - PASSWORD=admin
+            - DATABASE=ProductsDb
+            - ASPNETCORE_ENVIRONMENT=Development
+        ports:
+            - 5049:8080
+            - 7112:8081
+        networks:
+            - product-postgres-network
+    
+    db:
+        image: postgres:latest
+        volumes:
+            - ./postgres-init:/docker-entrypoint-initdb.d
+        ports:
+            - 5432:5432
+        networks:
+            - product-postgres-network
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=admin
+            - POSTGRES_DB=ProductsDb
+        
+networks:
+    product-postgres-network:
+        driver: "bridge"
+
+
