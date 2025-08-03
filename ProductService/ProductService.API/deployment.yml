@@ -1,0 +1,26 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: product-deployment
+    labels:
+        app: product-microservice
+        environment: development
+spec:
+    replicas: 1
+    selector:
+        matchlabels:
+            app: product-app
+    template:
+        metadata:
+            labels:
+                app: product-app
+    spec:
+        containers:
+            - name: product-container
+              image: warehousemanagement.azurecr.io/warehouse-product-service:latest
+            ports:
+                - containerPort:80
+            env:
+                - name: ASPNETCORE_ENVIRONMENT
+                  value: Development
+    

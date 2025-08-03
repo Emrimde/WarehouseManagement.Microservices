@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ProductService.Core.Domain.Entities;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 using ProductService.Core.DTO;
 using ProductService.Core.Result;
 using ProductService.Core.ServiceContracts;
-using ProductService.Infrastructure.DatabaseContext;
+
 
 namespace ProductService.API.Controllers;
 
@@ -12,12 +12,12 @@ namespace ProductService.API.Controllers;
 [ApiController]
 public class ProductsController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDistributedCache _distributedCache;
     private readonly IProductService _productService;
 
-    public ProductsController(ApplicationDbContext context, IProductService productService)
+    public ProductsController(IDistributedCache distributedCache, IProductService productService)
     {
-        _context = context;
+        _distributedCache = distributedCache;
         _productService = productService;
     }
 
@@ -32,14 +32,12 @@ public class ProductsController : ControllerBase
     // GET: api/Products/5
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductResponse>> GetProductById(Guid id)
-    {
+    { 
         Result<ProductResponse> result = await _productService.GetProductByIdAsync(id);
-
         if (result.IsSuccess == false)
         {
             return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
         }
-
         return Ok(result.Value!);
     }
 

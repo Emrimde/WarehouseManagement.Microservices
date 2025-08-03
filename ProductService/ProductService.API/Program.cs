@@ -9,7 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers(); // dodanie kontrolerów do kontenera Dependency Injection 
 builder.Services.AddEndpointsApiExplorer(); // dodanie eksploratora punktów koñcowych
 builder.Services.AddSwaggerGen(); // dodanie Swaggera do kontenera Dependency Injection
+builder.Services.AddStackExchangeRedisCache(options => {
+    options.Configuration = $"{Environment.GetEnvironmentVariable("REDIS_HOST")}:{Environment.GetEnvironmentVariable("REDIS_PORT")}";
 
+});
 builder.Services.AddInfrastructure();
 builder.Services.AddCore();
 
