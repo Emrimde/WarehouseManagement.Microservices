@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
-using Newtonsoft.Json;
 using ProductService.Core.DTO;
 using ProductService.Core.Result;
 using ProductService.Core.ServiceContracts;
@@ -12,12 +10,10 @@ namespace ProductService.API.Controllers;
 [ApiController]
 public class ProductsController : ControllerBase
 {
-    private readonly IDistributedCache _distributedCache;
     private readonly IProductService _productService;
 
-    public ProductsController(IDistributedCache distributedCache, IProductService productService)
+    public ProductsController(IProductService productService)
     {
-        _distributedCache = distributedCache;
         _productService = productService;
     }
 

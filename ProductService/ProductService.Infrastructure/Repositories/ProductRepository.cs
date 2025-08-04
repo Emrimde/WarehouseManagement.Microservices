@@ -64,7 +64,7 @@ public class ProductRepository : IProductRepository
 
         existingProduct.Description = product.Description;
         existingProduct.Name = product.Name;
-        existingProduct.UpdatedAt = DateTime.Now;
+        existingProduct.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
 
         return true; 

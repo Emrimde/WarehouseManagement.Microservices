@@ -14,7 +14,17 @@
         "Post",
         "Options"
       ],
-      "UpstreamScheme": "http"
+      "UpstreamScheme": "http",
+      "FileCacheOptions": {
+        "TtlSeconds": 30
+      },
+      "RateLimitOptions": {
+        "Limit": 3,
+        "Period": "60s", // moze byc w sekundach minutach,godzinach kolejno s,m,h; wiec przez minute dostepne są 3 requesty do tego endpointa
+        "HttpStatusCode": 429, // jaki typ bledu wyskoczy jak bedzie za duzo requestow
+        "EnableRateLimiting": true, // odpalamy rate limit
+        "PeriodTimespan": 30 // po 30 sekundach znowu można wysyłać requesty (trzy)
+      }
     },
     {
       "UpstreamPathTemplate": "/gateway/Products/{id}",
@@ -27,10 +37,24 @@
       ],
       "UpstreamHttpMethod": [
         "Get",
-        "Post",
+        "Put",
+        "Delete",
         "Options"
       ],
-      "UpstreamScheme": "http"
+      "UpstreamScheme": "http",
+
+      "FileCacheOptions": {
+        "TtlSeconds": 15 
+      },
+
+      
+      "RateLimitOptions": {
+        "Limit": 10,
+        "Period": "30s", 
+        "HttpStatusCode": 429, 
+        "EnableRateLimiting": true, 
+        "PeriodTimespan": 15 
+      }
     }
   ],
 

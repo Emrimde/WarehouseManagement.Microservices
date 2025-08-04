@@ -25,7 +25,7 @@ public class ProductService : IProductService
         }
 
         Product newProduct = await _productRepo.AddProductAsync(product.ToProduct());
-
+        
         return Result<ProductResponse>.Success(newProduct.ToProductResponse());
     }
 
@@ -68,28 +68,27 @@ public class ProductService : IProductService
         }
 
         string productJson = JsonConvert.SerializeObject(product.ToProductResponse());
-        await _cache.SetStringAsync(cacheKey, productJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(40)).SetSlidingExpiration(TimeSpan.FromSeconds(20))); // Jeżeli cache nie jest uzywany po 20 sekundach znika ale po 40 sekundach czy było używane czy nie, cache sie usuwa
+        await _cache.SetStringAsync(cacheKey, productJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100))); 
         return Result<ProductResponse>.Success(product.ToProductResponse());
     }
 
     public async Task<IEnumerable<ProductResponse>> GetProductsAsync()
     {
-        //MECHANIZM CZYTANIA Z CACHE
-        string cacheKey = "products:all";  // tworzenie klucza cache
-        string? cachedProducts = await _cache.GetStringAsync(cacheKey); // próba uzyskania danych z cache dla stworzonego klucza (przy pierwszym podejsciu bedzie null
+        string cacheKey = "products:all";
+        string? cachedProducts = await _cache.GetStringAsync(cacheKey); 
 
-        if (!string.IsNullOrEmpty(cachedProducts)) // jesli są dane w cache
+        if (!string.IsNullOrEmpty(cachedProducts))
         {
-            IEnumerable<ProductResponse>? productsFromCache = JsonConvert.DeserializeObject<IEnumerable<ProductResponse>>(cachedProducts); // deserializuj (zamiana format json na obiekty c#)
+            IEnumerable<ProductResponse>? productsFromCache = JsonConvert.DeserializeObject<IEnumerable<ProductResponse>>(cachedProducts); 
             return productsFromCache!;
         }
-        // Jeśli nie ma danych w cache idziemy dalej
-        IEnumerable<Product> products = await _productRepo.GetProductsAsync(); // wyciagamy z bazki
+        
+        IEnumerable<Product> products = await _productRepo.GetProductsAsync(); 
         IEnumerable<ProductResponse> responseList = products.Select(item => item.ToProductResponse());
 
-        // MECHANIZM ZAPISYWANIA DO CACHE
-        string productsJson = JsonConvert.SerializeObject(responseList); // serializacja( zamiana obiektow c# na json, po to zeby schowac w cache)
-        await _cache.SetStringAsync(cacheKey, productsJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(60)).SetSlidingExpiration(TimeSpan.FromSeconds(30))); // na podany klucz(cacheKey) zapisujemy dane produktu(productsJson) na tak długo (Set - Absolute i Sliding)
+       
+        string productsJson = JsonConvert.SerializeObject(responseList); 
+        await _cache.SetStringAsync(cacheKey, productsJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100)));
 
         return responseList;
     }
@@ -107,6 +106,11 @@ public class ProductService : IProductService
         {
             return Result<ProductUpdateRequest>.Failure("Error: Product not found", StatusCode.NotFound);
         }
+
+        string cacheKey = $"product:{id}";
+        string cacheKey2 = "products:all";
+        await _cache.RemoveAsync(cacheKey);
+        await _cache.RemoveAsync(cacheKey2);
 
         return Result<ProductUpdateRequest>.SuccessResult("Product successfully updated!");
     }
