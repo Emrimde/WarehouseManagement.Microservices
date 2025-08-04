@@ -41,9 +41,20 @@ services:
     volumes:
         - c:/Users/lapkomputer/source/repos/WarehouseManagement.Microservices/redis-cache:/data
 
+  apigateway:
+    image: apigateway
+    build:
+        context: ../WarehouseApiGateway
+        dockerfile: WarehouseApiGateway/Dockerfile
+    ports:
+        - 5000:8080
+    networks:
+        - warehouse-network
+
 networks:
     product-postgres-network:
         driver: "bridge"
     warehouse-network:
         driver: "bridge"
+
 

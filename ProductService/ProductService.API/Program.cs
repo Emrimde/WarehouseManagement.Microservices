@@ -25,7 +25,7 @@ if (app.Environment.IsDevelopment()) // Sprawdzenie, czy œrodowisko to œrodowisk
     app.UseSwaggerUI(); // W³¹czenie interfejsu u¿ytkownika Swaggera w œrodowisku deweloperskim
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
