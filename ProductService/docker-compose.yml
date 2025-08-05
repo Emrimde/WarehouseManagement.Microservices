@@ -12,6 +12,10 @@ services:
         - ASPNETCORE_ENVIRONMENT=Development
         - REDIS_HOST=redis
         - REDIS_PORT=6379
+        - RabbitMQ_HOSTNAME=rabbitmq  
+        - RabbitMQ_USERNAME=user
+        - RabbitMQ_PASSWORD=admin
+        - RabbitMQ_PORT=5672
     ports:
         - 5049:8080
         - 7112:8081
@@ -48,6 +52,17 @@ services:
         dockerfile: WarehouseApiGateway/Dockerfile
     ports:
         - 5000:8080
+    networks:
+        - warehouse-network
+
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    ports:
+        - 5672:5672    # port AMQP dla aplikacji (kolejek)
+        - 15672:15672  # port do graficznej konsoli (panelu www RabbitMQ)
+    environment:
+        - RABBITMQ_DEFAULT_USER=user  # opcjonalne - domyslnie jest to guest
+        - RABBITMQ_DEFAULT_PASS=admin # opcjonalne - domyslnie jest to guest
     networks:
         - warehouse-network
 

@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using ProductService.Core.Domain.Entities;
 using ProductService.Core.DTO;
 using ProductService.Core.Mappers;
+using ProductService.Core.RabbitMQ;
 using ProductService.Core.RepositoryContracts;
 using ProductService.Core.Result;
 using ProductService.Core.ServiceContracts;
@@ -12,10 +13,12 @@ public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepo;
     private readonly IDistributedCache _cache;
-    public ProductService(IProductRepository productRepo, IDistributedCache cache)
+    private readonly IRabbitMQPublisher _publisher;
+    public ProductService(IProductRepository productRepo, IDistributedCache cache, IRabbitMQPublisher publisher)
     {
         _productRepo = productRepo;
         _cache = cache;
+        _publisher = publisher;
     }
     public async Task<Result<ProductResponse>> AddProductAsync(ProductAddRequest product)
     {
@@ -25,7 +28,10 @@ public class ProductService : IProductService
         }
 
         Product newProduct = await _productRepo.AddProductAsync(product.ToProduct());
-        
+
+        await _publisher.InitAsync();
+        await _publisher.Publish("products.created", new ProductCreateMessage(newProduct.StockKeepingUnit));
+
         return Result<ProductResponse>.Success(newProduct.ToProductResponse());
     }
 
