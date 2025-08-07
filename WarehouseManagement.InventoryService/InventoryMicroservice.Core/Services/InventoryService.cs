@@ -14,6 +14,27 @@ public class InventoryService : IInventoryService
         _inventoryRepo = inventoryRepo;
     }
 
+    public async Task<Result<InventoryItemResponse>> AdjustQuantityOnHand(string sku, int adjustment)
+    {
+        if (string.IsNullOrEmpty(sku))
+        {
+            return Result<InventoryItemResponse>.Failure("sku is invalid", StatusCode.BadRequest);
+        }
+
+        if(adjustment == 0)
+        {
+            return Result<InventoryItemResponse>.Failure("adjustment cannot be null is invalid", StatusCode.BadRequest);
+        }
+        InventoryItem? inventoryItem = await _inventoryRepo.AdjustQuantity(sku, adjustment);
+
+        if (inventoryItem == null)
+        {
+            return Result<InventoryItemResponse>.Failure("Inventory item not found", StatusCode.NotFound);
+        }
+
+        return Result<InventoryItemResponse>.Success(inventoryItem.ToInventoryItemResponse());
+    }
+
     public async Task<Result<InventoryItemResponse>> GetInventoryBySku(string sku)
     {
         if (string.IsNullOrWhiteSpace(sku))

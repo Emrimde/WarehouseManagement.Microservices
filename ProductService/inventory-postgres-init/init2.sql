@@ -5,7 +5,7 @@
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.5
 
--- Started on 2025-08-06 14:15:39
+-- Started on 2025-08-07 20:53:24
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -59,6 +59,7 @@ ALTER TABLE public."__EFMigrationsHistory" OWNER TO postgres;
 --
 
 COPY public."InventoryItems" ("Id", "StockKeepingUnit", "QuantityOnHand", "QuantityReserved", "UpdatedAt") FROM stdin;
+35563352-ab62-4ebb-bfb2-cd4edcecd7c4	SONY-WH1000XM5	50	10	2025-08-07 20:02:37.329057+02
 \.
 
 
@@ -91,7 +92,7 @@ ALTER TABLE ONLY public."__EFMigrationsHistory"
     ADD CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId");
 
 
--- Completed on 2025-08-06 14:15:40
+-- Completed on 2025-08-07 20:53:24
 
 --
 -- PostgreSQL database dump complete

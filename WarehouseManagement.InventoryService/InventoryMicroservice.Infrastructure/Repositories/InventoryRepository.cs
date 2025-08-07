@@ -29,6 +29,18 @@ public class InventoryRepository : IInventoryRepository
         return inventoryItem;
     }
 
+    public async Task<InventoryItem?> AdjustQuantity(string sku, int adjustment)
+    {
+        InventoryItem? inventoryItem = await GetInventoryBySku(sku);
+        if (inventoryItem == null) 
+        {
+            return null;
+        }
+        inventoryItem.QuantityOnHand += adjustment;
+        await _dbContext.SaveChangesAsync();
+        return inventoryItem;
+    }
+
     public async Task<InventoryItem?> GetInventoryBySku(string sku)
     {
         return await _dbContext.InventoryItems.FirstOrDefaultAsync(item => item.StockKeepingUnit == sku);

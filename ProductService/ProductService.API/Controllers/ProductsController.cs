@@ -3,7 +3,6 @@ using ProductService.Core.DTO;
 using ProductService.Core.Result;
 using ProductService.Core.ServiceContracts;
 
-
 namespace ProductService.API.Controllers;
 
 [Route("api/[controller]")]

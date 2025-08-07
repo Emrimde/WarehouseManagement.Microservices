@@ -25,9 +25,9 @@ services:
         - warehouse-network
 
   inventoryMicroservice.api:
-    image: inventory-microservice:latest
+    image: inventory-microservice:v1.0
     environment:
-        - HOST=inventory_db
+        - HOST=inventory-db
         - USERNAME=postgres
         - PASSWORD=admin
         - DATABASE=Inventoriesdb
@@ -40,9 +40,10 @@ services:
         - RabbitMQ_PASSWORD=admin
         - RabbitMQ_PORT=5672
         - RabbitMQ_ProductExchange=product.exchange
+    entrypoint: ["sh", "-c", "sleep 10 && dotnet InventoryMicroservice.API.dll"]
     ports:
-        - 5051:8080
-        - 7114:8081
+        - 5054:8080
+        - 7115:8081
     networks:
         - inventory-postgres-network
         - warehouse-network
