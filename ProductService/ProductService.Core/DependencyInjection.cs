@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using ProductService.Core.RabbitMQ;
 using ProductService.Core.ServiceContracts;
-using RabbitMQ.Client;
-using System.Threading.Channels;
 
 namespace ProductService.Core
 {

@@ -12,16 +12,55 @@ services:
         - ASPNETCORE_ENVIRONMENT=Development
         - REDIS_HOST=redis
         - REDIS_PORT=6379
-        - RabbitMQ_HOSTNAME=rabbitmq  
+        - RabbitMQ_HOSTNAME=rabbitmqq
         - RabbitMQ_USERNAME=user
         - RabbitMQ_PASSWORD=admin
         - RabbitMQ_PORT=5672
+        - RabbitMQ_ProductExchange=product.exchange
     ports:
         - 5049:8080
         - 7112:8081
     networks:
         - product-postgres-network
         - warehouse-network
+
+  inventoryMicroservice.api:
+    image: inventory-microservice:latest
+    environment:
+        - HOST=inventory_db
+        - USERNAME=postgres
+        - PASSWORD=admin
+        - DATABASE=Inventoriesdb
+        - PORT=5432
+        - ASPNETCORE_ENVIRONMENT=Development
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+        - RabbitMQ_HOSTNAME=rabbitmqq  
+        - RabbitMQ_USERNAME=user
+        - RabbitMQ_PASSWORD=admin
+        - RabbitMQ_PORT=5672
+        - RabbitMQ_ProductExchange=product.exchange
+    ports:
+        - 5051:8080
+        - 7114:8081
+    networks:
+        - inventory-postgres-network
+        - warehouse-network
+    depends_on:
+        - rabbitmqq
+
+  inventory-db:
+    image: postgres:latest
+    ports:
+        - 5434:5432
+    volumes:
+        - ./inventory-postgres-init:/docker-entrypoint-initdb.d
+    networks:
+        - inventory-postgres-network
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=Inventoriesdb
 
   db:
     image: postgres:latest
@@ -55,19 +94,21 @@ services:
     networks:
         - warehouse-network
 
-  rabbitmq:
-    image: rabbitmq:4.1-management
+  rabbitmqq:
+    image: rabbitmq:3.13-management
     ports:
-        - 5672:5672    # port AMQP dla aplikacji (kolejek)
-        - 15672:15672  # port do graficznej konsoli (panelu www RabbitMQ)
+        - 5672:5672   
+        - 15672:15672  
     environment:
-        - RABBITMQ_DEFAULT_USER=user  # opcjonalne - domyslnie jest to guest
-        - RABBITMQ_DEFAULT_PASS=admin # opcjonalne - domyslnie jest to guest
+        - RABBITMQ_DEFAULT_USER=user  
+        - RABBITMQ_DEFAULT_PASS=admin 
     networks:
         - warehouse-network
 
 networks:
     product-postgres-network:
+        driver: "bridge"
+    inventory-postgres-network:
         driver: "bridge"
     warehouse-network:
         driver: "bridge"

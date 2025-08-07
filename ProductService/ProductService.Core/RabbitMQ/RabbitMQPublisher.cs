@@ -2,46 +2,45 @@
 using RabbitMQ.Client;
 using System.Text;
 
-namespace ProductService.Core.RabbitMQ
+namespace ProductService.Core.RabbitMQ;
+public class RabbitMQPublisher : IRabbitMQPublisher, IDisposable
 {
-    public class RabbitMQPublisher : IRabbitMQPublisher
+    private readonly IModel _channel;
+    private readonly IConnection _connection;
+
+    private readonly string _exchangeName;
+    public RabbitMQPublisher()
     {
-        private IChannel _channel = default!;
-        public RabbitMQPublisher()
+        _exchangeName = Environment.GetEnvironmentVariable("RabbitMQ_ProductExchange")!;
+        ConnectionFactory _connectionFactory = new ConnectionFactory()
         {
-        }
-        public async Task InitAsync()
-        {
-            ConnectionFactory _connectionFactory = new ConnectionFactory()
-            {
-                HostName = Environment.GetEnvironmentVariable("RabbitMQ_HOSTNAME")!,
-                Port = Convert.ToInt32(Environment.GetEnvironmentVariable("RabbitMQ_PORT"))!,
-                Password = Environment.GetEnvironmentVariable("RabbitMQ_PASSWORD")!,
-                UserName = Environment.GetEnvironmentVariable("RabbitMQ_USERNAME")!
-            };
+            HostName = Environment.GetEnvironmentVariable("RabbitMQ_HOSTNAME")!,
+            Port = Convert.ToInt32(Environment.GetEnvironmentVariable("RabbitMQ_PORT"))!,
+            Password = Environment.GetEnvironmentVariable("RabbitMQ_PASSWORD")!,
+            UserName = Environment.GetEnvironmentVariable("RabbitMQ_USERNAME")!
+        };
 
-            IConnection connection = await _connectionFactory.CreateConnectionAsync();
-            _channel = await connection.CreateChannelAsync();
+        _connection =  _connectionFactory.CreateConnection();
+        _channel = _connection.CreateModel();
 
-            await _channel.ExchangeDeclareAsync(exchange: "products.exchange", type: ExchangeType.Direct, durable: true);
-        }
+    }
+    
+    public void Publish<T>(string routingKey, T message)
+    {
+        string messageJson = JsonConvert.SerializeObject(message);
+        byte[] messageBodyInBytes = Encoding.UTF8.GetBytes(messageJson);
+        _channel.ExchangeDeclare(exchange: _exchangeName, type: ExchangeType.Direct, durable: true);
 
-        public async Task Publish<T>(string routingKey, T message)
-        {
-            string messageJson = JsonConvert.SerializeObject(message);
-            byte[] messageBodyInBytes = Encoding.UTF8.GetBytes(messageJson);
+         _channel.BasicPublish(
+            exchange: _exchangeName,
+            routingKey: routingKey,
+            basicProperties: null,
+            body: messageBodyInBytes);
+    }
 
-            BasicProperties props = new BasicProperties
-            {
-                Persistent = true
-            };
-
-            await _channel.BasicPublishAsync(
-                exchange: "products.exchange",
-                routingKey: routingKey,
-                mandatory: false,
-                basicProperties: props,
-                body: messageBodyInBytes);
-        }
+    public void Dispose()
+    {
+        _channel.Dispose();
+        _connection.Dispose();
     }
 }

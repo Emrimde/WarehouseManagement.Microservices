@@ -51,7 +51,7 @@ public class ProductsController : ControllerBase
 
     // POST: api/Products
     [HttpPost]
-    public async Task<ActionResult<ProductResponse>> PostProduct(ProductAddRequest product)
+    public async Task<ActionResult<ProductResponse>> PostProduct([FromBody] ProductAddRequest product)
     {
         Result<ProductResponse> result = await _productService.AddProductAsync(product);
 
@@ -60,7 +60,7 @@ public class ProductsController : ControllerBase
             return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
         }
 
-        return CreatedAtAction("GetProductById", new { id = result.Value!.Id });
+        return CreatedAtAction("GetProductById", new { id = result.Value!.Id }, result.Value);
     }
 
     // DELETE: api/Products/5

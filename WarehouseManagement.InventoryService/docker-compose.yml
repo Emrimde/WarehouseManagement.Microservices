@@ -1,0 +1,33 @@
+services:
+  inventorymicroservice.api:
+    image: ${DOCKER_REGISTRY-}inventorymicroserviceapi
+    build:
+      context: .
+      dockerfile: InventoryMicroservice.API/Dockerfile
+    environment:
+        - RabbitMQ_HOSTNAME=rabbitmq
+        - RabbitMQ_PASSWORD=admin
+        - RabbitMQ_USERNAME=user
+        - RabbitMQ_PORT=5672
+        - RabbitMQ_ProductExchange=product.exchange
+    networks:
+        - warehouse-network
+    ports:
+        - 5050:8080
+      
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    ports:
+        - 5672:5672    # port AMQP dla aplikacji (kolejek)
+        - 15672:15672  # port do graficznej konsoli (panelu www RabbitMQ)
+    environment:
+        - RABBITMQ_DEFAULT_USER=user  # opcjonalne - domyslnie jest to guest
+        - RABBITMQ_DEFAULT_PASS=admin # opcjonalne - domyslnie jest to guest
+    networks:
+        - warehouse-network
+
+networks:
+    # inventory-postgres-network:
+    #     driver: "bridge"
+    warehouse-network:
+        driver: "bridge"

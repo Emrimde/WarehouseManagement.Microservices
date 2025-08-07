@@ -12,8 +12,6 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["InventoryMicroservice.API/InventoryMicroservice.API.csproj", "InventoryMicroservice.API/"]
-COPY ["InventoryMicroservice.Core/InventoryMicroservice.Core.csproj", "InventoryMicroservice.Core/"]
-COPY ["InventoryMicroservice.Infrastructure/InventoryMicroservice.Infrastructure.csproj", "InventoryMicroservice.Infrastructure/"]
 RUN dotnet restore "./InventoryMicroservice.API/InventoryMicroservice.API.csproj"
 COPY . .
 WORKDIR "/src/InventoryMicroservice.API"

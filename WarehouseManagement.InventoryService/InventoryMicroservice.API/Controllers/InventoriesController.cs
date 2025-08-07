@@ -33,6 +33,12 @@ public class InventoriesController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<InventoryItem>>> GetInventories()
+    {
+        return await _context.InventoryItems.ToListAsync();
+    }
+
     // PUT: api/InventoryItems/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]

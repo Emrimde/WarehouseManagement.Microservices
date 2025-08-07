@@ -29,8 +29,7 @@ public class ProductService : IProductService
 
         Product newProduct = await _productRepo.AddProductAsync(product.ToProduct());
 
-        await _publisher.InitAsync();
-        await _publisher.Publish("products.created", new ProductCreateMessage(newProduct.StockKeepingUnit));
+         _publisher.Publish("product.create", new ProductCreateMessage(newProduct.StockKeepingUnit));
 
         return Result<ProductResponse>.Success(newProduct.ToProductResponse());
     }
