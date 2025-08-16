@@ -49,6 +49,35 @@ services:
         - warehouse-network
     depends_on:
         - rabbitmqq
+  
+  orderMicroservice.api:
+    image: order-microservice:v1.0
+    ports:
+        - 5055:8080
+        - 5056:8080
+    networks:
+        - warehouse-network
+        - order-postgres-network
+    environment:
+        - DB_NAME=OrdersDb
+        - DB_PORT=5432
+        - DB_PASSWORD=admin
+        - DB_HOST=order-db
+        - DB_USERNAME=postgres
+
+  order-db:
+    image: postgres:latest
+    ports:
+        - 5433:5432
+    volumes:
+        - ./order-postgres-init:/docker-entrypoint-initdb.d
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=OrdersDb
+    networks:
+        - order-postgres-network
+        
 
   inventory-db:
     image: postgres:latest
@@ -111,7 +140,10 @@ networks:
         driver: "bridge"
     inventory-postgres-network:
         driver: "bridge"
+    order-postgres-network:
+        driver: "bridge"
     warehouse-network:
         driver: "bridge"
+
 
 

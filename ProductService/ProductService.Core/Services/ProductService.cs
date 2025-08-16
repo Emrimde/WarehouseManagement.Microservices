@@ -77,6 +77,32 @@ public class ProductService : IProductService
         return Result<ProductResponse>.Success(product.ToProductResponse());
     }
 
+    public async Task<Result<ProductResponse>> GetProductBySkuAsync(string sku)
+    {
+        if (string.IsNullOrEmpty(sku))
+        {
+            return Result<ProductResponse>.Failure("Incorrect id", StatusCode.BadRequest);
+        }
+
+        string cacheKey = $"product:{sku}";
+        string? cachedProduct = await _cache.GetStringAsync(cacheKey);
+        if (!string.IsNullOrEmpty(cachedProduct))
+        {
+            ProductResponse? productFromCache = JsonConvert.DeserializeObject<ProductResponse>(cachedProduct);
+            return Result<ProductResponse>.Success(productFromCache!);
+        }
+
+        Product? product = await _productRepo.GetProductBySkuAsync(sku);
+        if (product == null)
+        {
+            return Result<ProductResponse>.Failure("Product not found", StatusCode.NotFound);
+        }
+
+        string productJson = JsonConvert.SerializeObject(product.ToProductResponse());
+        await _cache.SetStringAsync(cacheKey, productJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100)));
+        return Result<ProductResponse>.Success(product.ToProductResponse());
+    }
+
     public async Task<IEnumerable<ProductResponse>> GetProductsAsync()
     {
         string cacheKey = "products:all";

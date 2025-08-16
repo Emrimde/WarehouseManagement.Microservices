@@ -5,7 +5,7 @@
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.5
 
--- Started on 2025-08-07 20:53:24
+-- Started on 2025-08-16 07:23:50
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -33,7 +33,8 @@ CREATE TABLE public."InventoryItems" (
     "StockKeepingUnit" text NOT NULL,
     "QuantityOnHand" integer NOT NULL,
     "QuantityReserved" integer NOT NULL,
-    "UpdatedAt" timestamp with time zone NOT NULL
+    "UpdatedAt" timestamp with time zone NOT NULL,
+    "UnitPrice" numeric
 );
 
 
@@ -58,8 +59,8 @@ ALTER TABLE public."__EFMigrationsHistory" OWNER TO postgres;
 -- Data for Name: InventoryItems; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."InventoryItems" ("Id", "StockKeepingUnit", "QuantityOnHand", "QuantityReserved", "UpdatedAt") FROM stdin;
-35563352-ab62-4ebb-bfb2-cd4edcecd7c4	SONY-WH1000XM5	50	10	2025-08-07 20:02:37.329057+02
+COPY public."InventoryItems" ("Id", "StockKeepingUnit", "QuantityOnHand", "QuantityReserved", "UpdatedAt", "UnitPrice") FROM stdin;
+35563352-ab62-4ebb-bfb2-cd4edcecd7c4	SONY-WH1000XM5	50	10	2025-08-07 20:02:37.329057+02	3000
 \.
 
 
@@ -71,6 +72,7 @@ COPY public."InventoryItems" ("Id", "StockKeepingUnit", "QuantityOnHand", "Quant
 
 COPY public."__EFMigrationsHistory" ("MigrationId", "ProductVersion") FROM stdin;
 20250805093514_Init	8.0.18
+20250816051525_UnitPrice	8.0.18
 \.
 
 
@@ -92,7 +94,7 @@ ALTER TABLE ONLY public."__EFMigrationsHistory"
     ADD CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId");
 
 
--- Completed on 2025-08-07 20:53:24
+-- Completed on 2025-08-16 07:23:50
 
 --
 -- PostgreSQL database dump complete

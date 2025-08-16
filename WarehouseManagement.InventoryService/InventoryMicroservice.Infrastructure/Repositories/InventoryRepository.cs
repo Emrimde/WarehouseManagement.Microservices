@@ -45,4 +45,32 @@ public class InventoryRepository : IInventoryRepository
     {
         return await _dbContext.InventoryItems.FirstOrDefaultAsync(item => item.StockKeepingUnit == sku);
     }
+
+    public async Task<InventoryItem?> ReleaseQuantity(string sku, int adjustment)
+    {
+        InventoryItem? inventoryItem = await GetInventoryBySku(sku);
+        if(inventoryItem == null)
+        {
+            return null;
+        }
+        inventoryItem.QuantityReserved -= adjustment;
+        await _dbContext.SaveChangesAsync();
+
+        return inventoryItem;
+    }
+
+    public async Task<InventoryItem?> ReserveQuantity(string sku, int adjustment)
+    {
+        InventoryItem? inventoryItem = await GetInventoryBySku(sku);
+
+        if (inventoryItem == null)
+        {
+            return null;
+        }
+
+        inventoryItem.QuantityReserved += adjustment;
+        await _dbContext.SaveChangesAsync();
+
+        return inventoryItem;
+    }
 }

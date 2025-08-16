@@ -36,6 +36,18 @@ public class ProductsController : ControllerBase
         return Ok(result.Value!);
     }
 
+    // GET: api/Products/sku/{sku}
+    [HttpGet("sku/{sku}")]
+    public async Task<ActionResult<ProductResponse>> GetProductBySku(string sku)
+    {
+        Result<ProductResponse> result = await _productService.GetProductBySkuAsync(sku);
+        if (result.IsSuccess == false)
+        {
+            return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
+        }
+        return Ok(result.Value!);
+    }
+
     // PUT: api/Products/5
     [HttpPut("{id}")]
     public async Task<IActionResult> PutProduct(Guid id, ProductUpdateRequest product)

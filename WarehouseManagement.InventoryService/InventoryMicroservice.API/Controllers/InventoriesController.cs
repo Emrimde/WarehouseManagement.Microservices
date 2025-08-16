@@ -22,6 +22,11 @@ public class InventoriesController : ControllerBase
     }
 
     // GET: api/Inventories/5
+    /// <summary>
+    /// Retrieves the current inventory state for a specific product identified by SKU.
+    /// </summary>
+    /// <param name="sku">The SKU (Stock Keeping Unit) code of the product.</param>
+    /// <returns>Inventory details of the specified product.</returns>
     [HttpGet("{sku}")]
     public async Task<ActionResult<InventoryItem>> GetInventoryBySku(string sku)
     {
@@ -33,6 +38,10 @@ public class InventoriesController : ControllerBase
         return Ok(result.Value);
     }
 
+    /// <summary>
+    /// Retrieves the inventory details for all products.
+    /// </summary>
+    /// <returns>List of inventory items.</returns>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<InventoryItem>>> GetInventories()
     {
@@ -40,6 +49,14 @@ public class InventoriesController : ControllerBase
     }
 
     // POST: api/InventoryItems/{sku}/adjust
+    /// <summary>
+    /// Adjusts the available quantity for a specific product.
+    /// </summary>
+    /// <param name="sku">The SKU (Stock Keeping Unit) code of the product to update.</param>
+    /// <param name="adjustment">
+    /// The quantity change to apply. Positive values increase stock, negative values decrease it.
+    /// </param>
+    /// <returns>No content if successful, or an error message if the operation fails.</returns>
     [HttpPost("{sku}/adjust")]
     public async Task<IActionResult> AdjustInventoryQuantityOnHand(string sku, [FromBody] int adjustment)
     {

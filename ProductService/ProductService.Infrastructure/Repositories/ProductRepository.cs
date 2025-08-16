@@ -39,6 +39,11 @@ public class ProductRepository : IProductRepository
         return await _dbContext.Products.FirstOrDefaultAsync(item => item.Id == id);
     }
 
+    public async Task<Product?> GetProductBySkuAsync(string sku)
+    {
+        return await _dbContext.Products.FirstOrDefaultAsync(item => item.StockKeepingUnit == sku);
+    }
+
     public async Task<IEnumerable<Product>> GetProductsAsync()
     {
         return await _dbContext.Products.Where(item => item.IsActive == true).ToListAsync();

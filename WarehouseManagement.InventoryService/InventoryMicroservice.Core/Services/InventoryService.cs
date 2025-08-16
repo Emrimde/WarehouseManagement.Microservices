@@ -23,7 +23,7 @@ public class InventoryService : IInventoryService
 
         if(adjustment == 0)
         {
-            return Result<InventoryItemResponse>.Failure("adjustment cannot be null is invalid", StatusCode.BadRequest);
+            return Result<InventoryItemResponse>.Failure("adjustment is zero", StatusCode.BadRequest);
         }
         InventoryItem? inventoryItem = await _inventoryRepo.AdjustQuantity(sku, adjustment);
 
@@ -50,4 +50,6 @@ public class InventoryService : IInventoryService
 
         return Result<InventoryItemResponse>.Success(inventoryItem.ToInventoryItemResponse());
     }
+
+    
 }
