@@ -1,13 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using OrderMicroservice.Core.Domain.Entities;
-using OrderMicroservice.Core.DTO;
-using OrderMicroservice.Infrastructure.DatabaseContext;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using OrderMicroservice.Core.DTO.OrderDTO;
+using OrderMicroservice.Core.Result;
+using OrderMicroservice.Core.ServiceContracts;
 
 namespace OrderMicroservice.API.Controllers
 {
@@ -15,93 +10,67 @@ namespace OrderMicroservice.API.Controllers
     [ApiController]
     public class OrdersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-
-        public OrdersController(ApplicationDbContext context)
+        private readonly IOrderService _orderService;
+        public OrdersController(IOrderService orderService)
         {
-            _context = context;
+            _orderService = orderService;
         }
 
         // GET: api/Orders
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
-            return await _context.Orders.ToListAsync();
+            IEnumerable<OrderResponse> response = await _orderService.GetAllOrders();
+            return Ok(response);
         }
 
         // GET: api/Orders/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> GetOrder(Guid id)
         {
-            var order = await _context.Orders.FindAsync(id);
-
-            if (order == null)
+            Result<OrderResponse> response = await _orderService.GetOrderById(id);
+            if (response.IsSuccess)
             {
-                return NotFound();
+                return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
             }
-
-            return order;
+            return Ok(response.Value);
         }
 
-        // PUT: api/Orders/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutOrder(Guid id, Order order)
+        [HttpGet("order-status/{id}")]
+        public async Task<ActionResult> GetOrderStatus(Guid id)
         {
-            if (id != order.Id)
+            Result<string> response = await _orderService.GetOrderStatusById(id);
+            if (response.IsSuccess)
             {
-                return BadRequest();
+                return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
             }
-
-            _context.Entry(order).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OrderExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(response.Value);
         }
 
         // POST: api/Orders
         [HttpPost]
-        public async Task<ActionResult<Order>> PostOrder([FromBody] OrderAddRequest order)
+        public async Task<ActionResult<OrderResponse>> PostOrder([FromBody] OrderAddRequest order)
         {
-            // tutaj wywołam meotde serwisu AddOrder
-            _ = Task.CompletedTask;
-            return Ok();            
+            Result<OrderResponse> response = await _orderService.AddOrder(order);
+            if (!response.IsSuccess)
+            {
+                return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
+            }
+            return Ok(response.Value);
         }
+
 
         // DELETE: api/Orders/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(Guid id)
         {
-            var order = await _context.Orders.FindAsync(id);
-            if (order == null)
+            Result<bool> response = await _orderService.DeleteOrder(id);
+            if (response.IsSuccess)
             {
-                return NotFound();
+                return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
             }
-
-            _context.Orders.Remove(order);
-            await _context.SaveChangesAsync();
-
             return NoContent();
         }
 
-        private bool OrderExists(Guid id)
-        {
-            return _context.Orders.Any(e => e.Id == id);
-        }
     }
 }

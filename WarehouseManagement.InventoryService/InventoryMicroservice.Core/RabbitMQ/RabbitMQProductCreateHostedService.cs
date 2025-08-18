@@ -3,7 +3,6 @@
 namespace InventoryMicroservice.Core.RabbitMQ;
 public class RabbitMQProductCreateHostedService : IHostedService
 {
-    // te metody wywołują się automatycznie. cancelation token można anulować zadanie
     private readonly IRabbitMQProductCreateConsumer _productCreateConsumer;
     public RabbitMQProductCreateHostedService(IRabbitMQProductCreateConsumer productCreateConsumer)
     {

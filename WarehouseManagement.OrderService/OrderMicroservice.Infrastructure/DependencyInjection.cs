@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrderMicroservice.Core.Domain.RepositoryContracts;
 using OrderMicroservice.Infrastructure.DatabaseContext;
+using OrderMicroservice.Infrastructure.Repositories;
 
 namespace OrderMicroservice.Infrastructure;
 public static class DependencyInjection
@@ -17,7 +18,7 @@ public static class DependencyInjection
         string connectionString = $"Host={host};Username={username};Port={port};Database={db_name};Password={password}";
 
         services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
-        services.AddScoped<IOrderRepository, IOrderRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
         
         return services;
     }

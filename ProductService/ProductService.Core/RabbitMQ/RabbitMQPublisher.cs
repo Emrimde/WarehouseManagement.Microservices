@@ -11,13 +11,13 @@ public class RabbitMQPublisher : IRabbitMQPublisher, IDisposable
     private readonly string _exchangeName;
     public RabbitMQPublisher()
     {
-        _exchangeName = Environment.GetEnvironmentVariable("RabbitMQ_ProductExchange")!;
+        _exchangeName = Environment.GetEnvironmentVariable("RABBITMQ_ProductExchange")!;
         ConnectionFactory _connectionFactory = new ConnectionFactory()
         {
-            HostName = Environment.GetEnvironmentVariable("RabbitMQ_HOSTNAME")!,
+            HostName = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME")!,
             Port = Convert.ToInt32(Environment.GetEnvironmentVariable("RabbitMQ_PORT"))!,
-            Password = Environment.GetEnvironmentVariable("RabbitMQ_PASSWORD")!,
-            UserName = Environment.GetEnvironmentVariable("RabbitMQ_USERNAME")!
+            Password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD")!,
+            UserName = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME")!
         };
 
         _connection =  _connectionFactory.CreateConnection();

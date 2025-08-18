@@ -6,12 +6,13 @@ public static class ProductMapper
 {
     public static ProductResponse ToProductResponse(this Product product)
     {
-        return new ProductResponse()
-        {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-        };
+        return new ProductResponse
+        (
+             product.Id,
+             product.Name,
+             product.Description,
+             product.StockKeepingUnit
+        );
     }
 
     public static Product ToProduct(this ProductUpdateRequest product)

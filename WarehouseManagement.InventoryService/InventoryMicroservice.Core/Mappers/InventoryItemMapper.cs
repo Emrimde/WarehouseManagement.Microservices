@@ -6,11 +6,12 @@ public static class InventoryItemMapper
 {
     public static InventoryItemResponse ToInventoryItemResponse(this InventoryItem inventoryItem)
     {
-        return new InventoryItemResponse()
-        {
-            Available = inventoryItem.QuantityOnHand - inventoryItem.QuantityReserved,
-            QuantityReserved = inventoryItem.QuantityReserved,
-            QuantityOnHand = inventoryItem.QuantityOnHand,  
-        };
+        return new InventoryItemResponse
+        (
+            inventoryItem.QuantityOnHand - inventoryItem.QuantityReserved,
+            inventoryItem.QuantityReserved,
+            inventoryItem.QuantityOnHand,
+            inventoryItem.UnitPrice
+        );
     }
 }

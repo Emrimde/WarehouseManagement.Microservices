@@ -7,6 +7,7 @@ public interface IProductRepository
     Task<Product?> GetProductByIdAsync(Guid id);
     Task<bool> UpdateProductAsync(Product product, Guid id);
     Task<Product> AddProductAsync(Product product);
+    Task<Product?> GetProductBySkuAsync(string sku);
     Task<bool> IsProductValid(Product product);
     Task<bool> DeleteProduct(Guid id);
 }
