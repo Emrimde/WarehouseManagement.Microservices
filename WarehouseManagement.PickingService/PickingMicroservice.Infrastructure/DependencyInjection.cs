@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using PickingMicroservice.Core.DTO;
 using PickingMicroservice.Infrastructure.DatabaseContext;
+using PickingMicroservice.Infrastructure.Repositories;
 
 namespace PickingMicroservice.Infrastructure;
 public static class DependencyInjection
@@ -17,6 +19,7 @@ public static class DependencyInjection
         string connectionString = $"Host=localhost;Port=5432;Password=admin;Username=postgres;Database=PickingDb";
 
         services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddScoped<IPickingRepository, PickingRepository>();
 
         return services;
     }
