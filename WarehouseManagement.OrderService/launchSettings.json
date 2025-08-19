@@ -4,7 +4,8 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "ordermicroservice.api": "StartDebugging"
+        "ordermicroservice.api": "StartDebugging",
+        "inventorymicroservice.api": "StartDebugging" // can i do it like that?
       }
     }
   }

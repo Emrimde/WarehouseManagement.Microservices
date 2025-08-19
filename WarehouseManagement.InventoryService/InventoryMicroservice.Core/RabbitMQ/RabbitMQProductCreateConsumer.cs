@@ -21,19 +21,19 @@ public class RabbitMQProductCreateConsumer : IDisposable, IRabbitMQProductCreate
     {
         _logger = logger;
         _scopeFactory = scopeFactory;
-        _exchangeName = Environment.GetEnvironmentVariable("RabbitMQ_ProductExchange")!;
+        _exchangeName = Environment.GetEnvironmentVariable("RABBITMQ_PRODUCT_EXCHANGE")!;
 
         // debug: wypisz wartości
-        var host = Environment.GetEnvironmentVariable("RabbitMQ_HOSTNAME") ?? "<null>";
-        var port = Environment.GetEnvironmentVariable("RabbitMQ_PORT") ?? "<null>";
+        var host = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME")!;
+        var port = Environment.GetEnvironmentVariable("RABBITMQ_PORT")!;
         Console.WriteLine($"[DEBUG Consumer] Host={host}, Port={port}, Exchange={_exchangeName}");
 
         var factory = new ConnectionFactory
         {
             HostName = host,
             Port = int.Parse(port),
-            UserName = Environment.GetEnvironmentVariable("RabbitMQ_USERNAME")!,
-            Password = Environment.GetEnvironmentVariable("RabbitMQ_PASSWORD")!
+            UserName = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME")!,
+            Password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD")!
         };
 
         _connection = factory.CreateConnection();

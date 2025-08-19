@@ -1,4 +1,5 @@
-﻿using InventoryMicroservice.Core.Domain.RepositoryContracts;
+﻿using InventoryMicroservice.Core.RabbitMQ.PickingPublisher;
+using InventoryMicroservice.Core.ServiceContracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -15,6 +16,8 @@ public class RabbitMQOrderCreateConsumer : IDisposable, IRabbitMQOrderCreateCons
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly string _exchangeName;
     private readonly ILogger<RabbitMQOrderCreateConsumer> _logger;
+    
+
 
     public RabbitMQOrderCreateConsumer(IServiceScopeFactory scopeFactory, ILogger<RabbitMQOrderCreateConsumer> logger)
     {
@@ -53,33 +56,26 @@ public class RabbitMQOrderCreateConsumer : IDisposable, IRabbitMQOrderCreateCons
 
         EventingBasicConsumer consumer = new EventingBasicConsumer(_channel);
 
-        consumer.Received += (sender, args) =>
+        consumer.Received += async (sender, args) =>
         {
-            _ = Task.Run(async () =>
+            try
             {
-                try
-                {
-                    var message = Encoding.UTF8.GetString(args.Body.ToArray());
-                    OrderCreateMessage? order = JsonConvert.DeserializeObject<OrderCreateMessage>(message);
+                string message = Encoding.UTF8.GetString(args.Body.ToArray());
+                OrderCreateMessage? order = JsonConvert.DeserializeObject<OrderCreateMessage>(message);
 
-                    using var scope = _scopeFactory.CreateScope();
-                    IInventoryRepository repo = scope.ServiceProvider.GetRequiredService<IInventoryRepository>();
+                using var scope = _scopeFactory.CreateScope();
+                var inventoryService = scope.ServiceProvider.GetRequiredService<IInventoryReservationService>();
 
-                    if (order == null)
-                    {
-                        throw new Exception();
-                    }
+                if (order == null) throw new Exception("Order is null");
 
-                    await Task.WhenAll(order.Items.Select(item =>
-                    repo.ReserveQuantity(item.SKU, item.Quantity)
-                    ));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error processing message.");
-                }
-            });
+                await inventoryService.ProcessOrderAsync(new PickingMessage(order.Items, order.orderId, order.CreatedAt));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing message.");
+            }
         };
+
 
         _channel.BasicConsume(queue: queueName, consumer: consumer, autoAck: true);
     }

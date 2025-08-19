@@ -1,33 +1,157 @@
 services:
-  inventorymicroservice.api:
-    image: ${DOCKER_REGISTRY-}inventorymicroserviceapi
-    build:
-      context: .
-      dockerfile: InventoryMicroservice.API/Dockerfile
-    environment:
-        - RabbitMQ_HOSTNAME=rabbitmq
-        - RabbitMQ_PASSWORD=admin
-        - RabbitMQ_USERNAME=user
-        - RabbitMQ_PORT=5672
-        - RabbitMQ_ProductExchange=product.exchange
+  ordermicroservice.api:
+    image: ordermicroservice.api:1.2
+    # build:
+    #   context: .
+    #   dockerfile: OrderMicroservice.API/Dockerfile
+    ports:
+        - 4001:8080
+        - 4002:8081
     networks:
         - warehouse-network
-    ports:
-        - 5050:8080
-      
-  rabbitmq:
-    image: rabbitmq:4.1-management
-    ports:
-        - 5672:5672    # port AMQP dla aplikacji (kolejek)
-        - 15672:15672  # port do graficznej konsoli (panelu www RabbitMQ)
+        - order-postgres-network
     environment:
-        - RABBITMQ_DEFAULT_USER=user  # opcjonalne - domyslnie jest to guest
-        - RABBITMQ_DEFAULT_PASS=admin # opcjonalne - domyslnie jest to guest
+        - DB_NAME=OrdersDb
+        - DB_PORT=5432
+        - DB_PASSWORD=admin
+        - DB_USERNAME=postgres
+        - DB_HOST=order-db
+        - RABBITMQ_ORDER_EXCHANGE=order.exchange
+        - RABBIT_MQ_HOSTNAME=rabbitmqq
+        - RABBIT_MQ_PORT=5672
+        - RABBIT_MQ_PASSWORD=admin
+        - RABBIT_MQ_USERNAME=user
+      
+  productmicroservice.api:
+    image: productmicroservice.api:v1.2
+    ports:
+      - 6001:8080
+      - 6002:8081
+    environment:
+        - HOST=product-db
+        - USERNAME=postgres
+        - PASSWORD=admin
+        - DATABASE=ProductsDb
+        - ASPNETCORE_ENVIRONMENT=Development
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+        - RABBITMQ_HOSTNAME=rabbitmqq
+        - RABBITMQ_USERNAME=user
+        - RABBITMQ_PASSWORD=admin
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_ProductExchange=product.exchange
+    networks:
+        - product-postgres-network
+        - warehouse-network
+
+  inventorymicroservice.api:
+    image: inventorymicroservice
+    build:
+        context: .
+        dockerfile: InventoryMicroservice.API/Dockerfile
+    environment:
+        - HOST=inventory-db
+        - USERNAME=postgres
+        - PASSWORD=admin
+        - DATABASE=Inventoriesdb
+        - PORT=5432
+        - ASPNETCORE_ENVIRONMENT=Development
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+        - RABBITMQ_HOSTNAME=rabbitmqq  
+        - RABBITMQ_USERNAME=user
+        - RABBITMQ_PASSWORD=admin
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_PRODUCT_EXCHANGE=product.exchange
+        - RABBITMQ_ORDER_EXCHANGE=order.exchange
+        - RABBITMQ_INVENTORY_EXCHANGE=inventory.exchange
+    ports:
+        - 7000:8080
+        - 7001:8081
+    networks:
+        - inventory-postgres-network
+        - warehouse-network
+
+
+  order-db:
+    image: postgres:latest
+    ports:
+        - 5433:5432
+    volumes:
+        - ../order-postgres-init:/docker-entrypoint-initdb.d
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=OrdersDb
+    networks:
+        - order-postgres-network
+        
+
+  inventory-db:
+    image: postgres:latest
+    ports:
+        - 5434:5432
+    volumes:
+        - ../inventory-postgres-init:/docker-entrypoint-initdb.d
+    networks:
+        - inventory-postgres-network
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=Inventoriesdb
+
+  product-db:
+    image: postgres:latest
+    ports:
+        - 5432:5432
+    volumes:
+        - ../product-postgres-init:/docker-entrypoint-initdb.d
+    networks:
+        - product-postgres-network
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=ProductsDb
+
+  redis:
+    image: redis:latest
+    ports:
+        - 6379:6379
+    networks:
+        - warehouse-network
+    volumes:
+        - c:/Users/lapkomputer/source/repos/WarehouseManagement.Microservices/redis-cache:/data
+
+  apigateway:
+    image: apigateway
+    build:
+        context: ../WarehouseApiGateway
+        dockerfile: WarehouseApiGateway/Dockerfile
+    ports:
+        - 5000:8080
+    networks:
+        - warehouse-network
+
+  rabbitmqq:
+    image: rabbitmq:3.13-management
+    ports:
+        - 5672:5672   
+        - 15672:15672  
+    environment:
+        - RABBITMQ_DEFAULT_USER=user  
+        - RABBITMQ_DEFAULT_PASS=admin 
     networks:
         - warehouse-network
 
 networks:
-    # inventory-postgres-network:
-    #     driver: "bridge"
+    product-postgres-network:
+        driver: "bridge"
+    inventory-postgres-network:
+        driver: "bridge"
+    order-postgres-network:
+        driver: "bridge"
     warehouse-network:
         driver: "bridge"
+
+
+

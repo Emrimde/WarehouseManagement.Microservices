@@ -1,9 +1,9 @@
 services:
   ordermicroservice.api:
-    image: ${DOCKER_REGISTRY-}ordermicroserviceapi
-    build:
-      context: .
-      dockerfile: OrderMicroservice.API/Dockerfile
+    image: ordermicroservice.api:1.2
+    # build:
+    #   context: .
+    #   dockerfile: OrderMicroservice.API/Dockerfile
     ports:
         - 4001:8080
         - 4002:8081
@@ -45,7 +45,10 @@ services:
         - warehouse-network
 
   inventorymicroservice.api:
-    image: inventory-microservice:v1.1
+    image: inventorymicroservice
+    build:
+        context: ../WarehouseManagement.InventoryService
+        dockerfile: InventoryMicroservice.API/Dockerfile
     environment:
         - HOST=inventory-db
         - USERNAME=postgres
@@ -59,8 +62,9 @@ services:
         - RABBITMQ_USERNAME=user
         - RABBITMQ_PASSWORD=admin
         - RABBITMQ_PORT=5672
-        - RABBITMQ_ProductExchange=product.exchange
+        - RABBITMQ_PRODUCT_EXCHANGE=product.exchange
         - RABBITMQ_ORDER_EXCHANGE=order.exchange
+        - RABBITMQ_INVENTORY_EXCHANGE=inventory.exchange
     ports:
         - 7000:8080
         - 7001:8081
