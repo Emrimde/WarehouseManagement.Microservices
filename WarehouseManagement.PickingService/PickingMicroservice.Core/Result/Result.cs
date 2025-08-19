@@ -1,4 +1,4 @@
-﻿namespace InventoryMicroservice.Core.Result;
+﻿namespace PickingMicroservice.Core.Result;
 public enum StatusCode
 {
     Success = 200,
