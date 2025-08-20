@@ -4,6 +4,7 @@ public record ProductResponse
     Guid Id,
     string Name,
     string Description, 
-    string Sku
+    string Sku,
+    Guid CategoryId
 );
 

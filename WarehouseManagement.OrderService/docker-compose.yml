@@ -1,9 +1,9 @@
 services:
   ordermicroservice.api:
     image: ordermicroservice.api:1.2
-    # build:
-    #   context: .
-    #   dockerfile: OrderMicroservice.API/Dockerfile
+    build:
+      context: .
+      dockerfile: OrderMicroservice.API/Dockerfile
     ports:
         - 4001:8080
         - 4002:8081
@@ -45,10 +45,7 @@ services:
         - warehouse-network
 
   inventorymicroservice.api:
-    image: inventorymicroservice
-    build:
-        context: ../WarehouseManagement.InventoryService
-        dockerfile: InventoryMicroservice.API/Dockerfile
+    image: inventorymicroservice:v1.4
     environment:
         - HOST=inventory-db
         - USERNAME=postgres
@@ -78,7 +75,7 @@ services:
     ports:
         - 5433:5432
     volumes:
-        - ./order-postgres-init:/docker-entrypoint-initdb.d
+        - ../order-postgres-init:/docker-entrypoint-initdb.d
     environment:
         - POSTGRES_USER=postgres
         - POSTGRES_PASSWORD=admin
@@ -92,7 +89,7 @@ services:
     ports:
         - 5434:5432
     volumes:
-        - ./inventory-postgres-init:/docker-entrypoint-initdb.d
+        - ../inventory-postgres-init:/docker-entrypoint-initdb.d
     networks:
         - inventory-postgres-network
     environment:
@@ -105,7 +102,7 @@ services:
     ports:
         - 5432:5432
     volumes:
-        - ./postgres-init:/docker-entrypoint-initdb.d
+        - ../postgres-init:/docker-entrypoint-initdb.d
     networks:
         - product-postgres-network
     environment:

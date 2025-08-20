@@ -14,4 +14,13 @@ public static class InventoryItemMapper
             inventoryItem.UnitPrice
         );
     }
+
+    public static InventoryItem ToInventoryItem(this InventoryUpdateRequest inventoryUpdateRequest)
+    {
+        return new InventoryItem()
+        {
+            UnitPrice = inventoryUpdateRequest.UnitPrice,
+            QuantityOnHand = inventoryUpdateRequest.QuantityOnHand,
+        };
+    }
 }

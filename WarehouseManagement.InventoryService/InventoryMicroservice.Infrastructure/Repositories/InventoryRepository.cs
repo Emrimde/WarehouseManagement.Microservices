@@ -29,14 +29,16 @@ public class InventoryRepository : IInventoryRepository
         return inventoryItem;
     }
 
-    public async Task<InventoryItem?> AdjustQuantity(string sku, int adjustment)
+    public async Task<InventoryItem?> AdjustInventoryItem(string sku, InventoryItem inventoryItem)
     {
-        InventoryItem? inventoryItem = await GetInventoryBySku(sku);
-        if (inventoryItem == null) 
+        InventoryItem? existingInventoryItem = await GetInventoryBySku(sku);
+        if (existingInventoryItem == null) 
         {
             return null;
         }
-        inventoryItem.QuantityOnHand += adjustment;
+
+        existingInventoryItem.QuantityOnHand += inventoryItem.QuantityOnHand;
+        existingInventoryItem.UnitPrice = inventoryItem.UnitPrice;
         await _dbContext.SaveChangesAsync();
         return inventoryItem;
     }

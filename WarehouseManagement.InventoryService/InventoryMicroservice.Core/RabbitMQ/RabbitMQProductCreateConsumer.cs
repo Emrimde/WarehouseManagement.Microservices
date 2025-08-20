@@ -61,7 +61,7 @@ public class RabbitMQProductCreateConsumer : IDisposable, IRabbitMQProductCreate
             {
                 try
                 {
-                    _logger.LogInformation("[LOG] - Message Gained");
+                    _logger.LogInformation("[LOG] - Message from product microservice gained");
                     var message = Encoding.UTF8.GetString(args.Body.ToArray());
                     var product = JsonConvert.DeserializeObject<ProductCreateMessage>(message);
 

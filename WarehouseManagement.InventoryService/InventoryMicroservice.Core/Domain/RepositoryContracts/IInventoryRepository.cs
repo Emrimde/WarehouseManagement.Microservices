@@ -5,7 +5,7 @@ public interface IInventoryRepository
 {
     Task<InventoryItem?> GetInventoryBySku(string sku);
     Task<InventoryItem> AddEmptyInventoryItemWithSkuAsync(string sku);
-    Task<InventoryItem?> AdjustQuantity(string sku, int adjustment);
+    Task<InventoryItem?> AdjustInventoryItem(string sku, InventoryItem inventoryItem);
     Task<InventoryItem?> ReleaseQuantity(string sku, int adjustment);
     Task<InventoryItem?> ReserveQuantity(string sku, int adjustment);
 }

@@ -15,7 +15,7 @@ public class RabbitMQPublisher : IRabbitMQPublisher, IDisposable
         ConnectionFactory _connectionFactory = new ConnectionFactory()
         {
             HostName = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME")!,
-            Port = Convert.ToInt32(Environment.GetEnvironmentVariable("RabbitMQ_PORT"))!,
+            Port = Convert.ToInt32(Environment.GetEnvironmentVariable("RABBITMQ_PORT"))!,
             Password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD")!,
             UserName = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME")!
         };

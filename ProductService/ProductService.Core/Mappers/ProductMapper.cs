@@ -11,7 +11,8 @@ public static class ProductMapper
              product.Id,
              product.Name,
              product.Description,
-             product.StockKeepingUnit
+             product.StockKeepingUnit,
+             product.CategoryId
         );
     }
 

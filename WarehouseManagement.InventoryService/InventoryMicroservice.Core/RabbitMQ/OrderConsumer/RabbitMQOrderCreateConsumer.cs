@@ -8,7 +8,6 @@ using RabbitMQ.Client.Events;
 using System.Text;
 
 namespace InventoryMicroservice.Core.RabbitMQ.OrderConsumer;
-
 public class RabbitMQOrderCreateConsumer : IDisposable, IRabbitMQOrderCreateConsumer
 {
     private readonly IModel _channel;
@@ -16,9 +15,6 @@ public class RabbitMQOrderCreateConsumer : IDisposable, IRabbitMQOrderCreateCons
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly string _exchangeName;
     private readonly ILogger<RabbitMQOrderCreateConsumer> _logger;
-    
-
-
     public RabbitMQOrderCreateConsumer(IServiceScopeFactory scopeFactory, ILogger<RabbitMQOrderCreateConsumer> logger)
     {
         _logger = logger;
@@ -60,6 +56,7 @@ public class RabbitMQOrderCreateConsumer : IDisposable, IRabbitMQOrderCreateCons
         {
             try
             {
+                _logger.LogInformation("[LOG] - Message from order microservice gained");
                 string message = Encoding.UTF8.GetString(args.Body.ToArray());
                 OrderCreateMessage? order = JsonConvert.DeserializeObject<OrderCreateMessage>(message);
 
@@ -68,6 +65,7 @@ public class RabbitMQOrderCreateConsumer : IDisposable, IRabbitMQOrderCreateCons
 
                 if (order == null) throw new Exception("Order is null");
 
+                _logger.LogInformation("[LOG] - publish inventory.reservated");
                 await inventoryService.ProcessOrderAsync(new PickingMessage(order.Items, order.orderId, order.CreatedAt));
             }
             catch (Exception ex)

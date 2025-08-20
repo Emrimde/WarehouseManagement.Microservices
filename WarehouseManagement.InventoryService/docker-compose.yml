@@ -17,13 +17,14 @@ services:
         - DB_USERNAME=postgres
         - DB_HOST=order-db
         - RABBITMQ_ORDER_EXCHANGE=order.exchange
+        - ASPNETCORE_ENVIRONMENT=Development
         - RABBIT_MQ_HOSTNAME=rabbitmqq
         - RABBIT_MQ_PORT=5672
         - RABBIT_MQ_PASSWORD=admin
         - RABBIT_MQ_USERNAME=user
       
   productmicroservice.api:
-    image: productmicroservice.api:v1.2
+    image: productmicroservice.api:v1.4
     ports:
       - 6001:8080
       - 6002:8081

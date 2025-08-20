@@ -14,18 +14,20 @@ public class InventoryService : IInventoryService
         _inventoryRepo = inventoryRepo;
     }
 
-    public async Task<Result<InventoryItemResponse>> AdjustQuantityOnHand(string sku, int adjustment)
+    public async Task<Result<InventoryItemResponse>> AdjustInventoryItem(string sku, InventoryUpdateRequest request)
     {
         if (string.IsNullOrEmpty(sku))
         {
             return Result<InventoryItemResponse>.Failure("sku is invalid", StatusCode.BadRequest);
         }
 
-        if(adjustment == 0)
+        if(request.QuantityOnHand == 0)
         {
-            return Result<InventoryItemResponse>.Failure("adjustment is zero", StatusCode.BadRequest);
+            return Result<InventoryItemResponse>.Failure("Quantity is zero", StatusCode.BadRequest);
         }
-        InventoryItem? inventoryItem = await _inventoryRepo.AdjustQuantity(sku, adjustment);
+
+        InventoryItem inventoryItemFromUpdateRequest = request.ToInventoryItem();
+        InventoryItem? inventoryItem = await _inventoryRepo.AdjustInventoryItem(sku, inventoryItemFromUpdateRequest);
 
         if (inventoryItem == null)
         {
@@ -50,6 +52,4 @@ public class InventoryService : IInventoryService
 
         return Result<InventoryItemResponse>.Success(inventoryItem.ToInventoryItemResponse());
     }
-
-    
 }

@@ -5,6 +5,8 @@ using InventoryMicroservice.Core.ServiceContracts;
 using InventoryMicroservice.Infrastructure.DatabaseContext;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace InventoryMicroservice.API.Controllers;
 
@@ -28,7 +30,7 @@ public class InventoriesController : ControllerBase
     /// <param name="sku">The SKU (Stock Keeping Unit) code of the product.</param>
     /// <returns>Inventory details of the specified product.</returns>
     [HttpGet("{sku}")]
-    public async Task<ActionResult<InventoryItem>> GetInventoryBySku(string sku)
+    public async Task<ActionResult<InventoryItemResponse>> GetInventoryBySku(string sku)
     {
         Result<InventoryItemResponse> result = await _inventoryService.GetInventoryBySku(sku);
         if (!result.IsSuccess)
@@ -57,15 +59,15 @@ public class InventoriesController : ControllerBase
     /// The quantity change to apply. Positive values increase stock, negative values decrease it.
     /// </param>
     /// <returns>No content if successful, or an error message if the operation fails.</returns>
-    [HttpPost("{sku}/adjust")]
-    public async Task<IActionResult> AdjustInventoryQuantityOnHand(string sku, [FromBody] int adjustment)
+    [HttpPatch("{sku}/adjust")]
+    public async Task<IActionResult> AdjustInventory(string sku, [FromBody] InventoryUpdateRequest request)
     {
-        Result<InventoryItemResponse> response = await _inventoryService.AdjustQuantityOnHand(sku, adjustment);
+        Result<InventoryItemResponse> response = await _inventoryService.AdjustInventoryItem(sku, request);
         if (!response.IsSuccess)
         {
             return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
         }
 
-        return Ok();
+        return Ok(response.Value);
     }
 }

@@ -5,5 +5,5 @@ namespace InventoryMicroservice.Core.ServiceContracts;
 public interface IInventoryService
 {
     Task<Result<InventoryItemResponse>> GetInventoryBySku(string sku);
-    Task<Result<InventoryItemResponse>> AdjustQuantityOnHand(string sku, int adjustment);
+    Task<Result<InventoryItemResponse>> AdjustInventoryItem(string sku, InventoryUpdateRequest request);
 }
