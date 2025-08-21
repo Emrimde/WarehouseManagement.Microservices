@@ -27,8 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ProductService.Core\ProductService.Core.csproj" />
-    <ProjectReference Include="..\ProductService.Infrastructure\ProductService.Infrastructure.csproj" />
+    <ProjectReference Include="..\ProductMicroservice.Core\ProductMicroservice.Core.csproj" />
+    <ProjectReference Include="..\ProductMicroservice.Infrastructure\ProductMicroservice.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
