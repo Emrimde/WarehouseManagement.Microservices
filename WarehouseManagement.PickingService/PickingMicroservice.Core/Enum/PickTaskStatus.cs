@@ -1,5 +1,5 @@
 ﻿namespace PickingMicroservice.Core.Enum;
-public enum PickStatus
+public enum PickTaskStatus
 {
     InProgress,
     Completed

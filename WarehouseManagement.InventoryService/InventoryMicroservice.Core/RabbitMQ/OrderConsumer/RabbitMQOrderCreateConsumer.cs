@@ -66,7 +66,7 @@ public class RabbitMQOrderCreateConsumer : IDisposable, IRabbitMQOrderCreateCons
                 if (order == null) throw new Exception("Order is null");
 
                 _logger.LogInformation("[LOG] - publish inventory.reservated");
-                await inventoryService.ProcessOrderAsync(new PickingMessage(order.Items, order.orderId, order.CreatedAt));
+                await inventoryService.ProcessOrderAsync(new PickingMessage(order.Items, order.orderId, order.CreatedAt, order.CustomerName, order.OrderNumber));
             }
             catch (Exception ex)
             {

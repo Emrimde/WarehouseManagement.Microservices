@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using PickingMicroservice.Core;
 using PickingMicroservice.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,10 +7,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddLogging();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCore();
 builder.Services.AddInfrastructure();
+
 
 var app = builder.Build();
 
@@ -18,6 +24,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
 
 app.UseHttpsRedirection();
 

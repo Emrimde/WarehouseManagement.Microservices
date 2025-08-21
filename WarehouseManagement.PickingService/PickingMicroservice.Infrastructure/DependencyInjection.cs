@@ -15,8 +15,8 @@ public static class DependencyInjection
         string password = Environment.GetEnvironmentVariable("DB_PASSWORD")!;
         string database = Environment.GetEnvironmentVariable("DB_NAME")!;
 
-        //string connectionString = $"Host={host};Port={port};Password={password};Username={username};Database={database}";
-        string connectionString = $"Host=localhost;Port=5432;Password=admin;Username=postgres;Database=PickingDb";
+        string connectionString = $"Host={host};Port={port};Password={password};Username={username};Database={database}";
+        //string connectionString = $"Host=localhost;Port=5432;Password=admin;Username=postgres;Database=PickingDb";
 
         services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IPickingRepository, PickingRepository>();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PickingMicroservice.Core.DTO;
 using PickingMicroservice.Core.Result;
+using PickingMicroservice.Core.Service;
 using PickingMicroservice.Core.ServiceContracts;
 
 namespace PickingMicroservice.API.Controllers;
@@ -16,13 +17,13 @@ public class PickingController : ControllerBase
     [HttpGet("tasks")] 
     public async Task<ActionResult> GetAllTasks()
     {
-        IEnumerable<PickingResponse> response = await _pickingService.GetAllTasks();
+        IEnumerable<PickTaskResponse> response = await _pickingService.GetAllTasks();
         return Ok(response);
     }
-    [HttpGet("tasks/{orderId}")]
-    public async Task<ActionResult<PickingResponse>> GetTaskById(string orderId)
+    [HttpGet("tasks/{pickTaskId}")]
+    public async Task<ActionResult<PickTaskResponse>> GetTaskById(Guid pickTaskId)
     {
-        Result<PickingResponse> response = await _pickingService.GetTaskById(orderId);
+        Result<IEnumerable<PickItemResponse>> response = await _pickingService.GetTaskByOrderIdAsync(pickTaskId);
         if (!response.IsSuccess)
         {
             return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
@@ -30,14 +31,14 @@ public class PickingController : ControllerBase
         return Ok(response.Value);
     }
 
-    [HttpPost("tasks/{orderId}/complete")]
-    public async Task<ActionResult<bool>> PostTaskCompleted(string orderId)
-    {
-        Result<bool> response = await _pickingService.MakeTaskCompleted(orderId);
-        if (!response.IsSuccess)
-        {
-            return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
-        }
-        return Ok(response.Value);
-    }
+    //[HttpPost("tasks/{orderId}/complete")]
+    //public async Task<ActionResult<bool>> PostTaskCompleted(string orderId)
+    //{
+    //    Result<bool> response = await _pickingService.MakeTaskCompleted(orderId);
+    //    if (!response.IsSuccess)
+    //    {
+    //        return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
+    //    }
+    //    return Ok(response.Value);
+    //}
 }

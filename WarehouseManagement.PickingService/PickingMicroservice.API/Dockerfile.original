@@ -13,8 +13,6 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["PickingMicroservice.API/PickingMicroservice.API.csproj", "PickingMicroservice.API/"]
-COPY ["PickingMicroservice.Core/PickingMicroservice.Core.csproj", "PickingMicroservice.Core/"]
-COPY ["PickingMicroservice.Infrastructure/PickingMicroservice.Infrastructure.csproj", "PickingMicroservice.Infrastructure/"]
 RUN dotnet restore "./PickingMicroservice.API/PickingMicroservice.API.csproj"
 COPY . .
 WORKDIR "/src/PickingMicroservice.API"

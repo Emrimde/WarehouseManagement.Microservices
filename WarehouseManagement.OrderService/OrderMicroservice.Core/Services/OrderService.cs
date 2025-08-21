@@ -76,7 +76,7 @@ public class OrderService : IOrderService
             return Result<OrderResponse>.Failure($"Order not created", StatusCode.BadRequest);
         }
 
-        _publisher.Publish("order.created", new OrderCreateMessage(request.Items,order.Id,order.CreatedAt));
+        _publisher.Publish("order.created", new OrderCreateMessage(request.Items,order.Id.ToString(),order.CreatedAt,order.CustomerName,order.OrderNumber));
         
         return Result<OrderResponse>.Success(createdOrder.ToOrderResponse());
     }

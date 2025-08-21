@@ -1,6 +1,5 @@
 ﻿using PickingMicroservice.Core.Domain.Entities;
 using PickingMicroservice.Core.DTO;
-using PickingMicroservice.Core.Enum;
 using PickingMicroservice.Core.Mappers;
 using PickingMicroservice.Core.Result;
 using PickingMicroservice.Core.ServiceContracts;
@@ -15,38 +14,48 @@ public class PickingService : IPickingService
         _pickingRepo = pickingRepo;
     }
 
-    public async Task<IEnumerable<PickingResponse>> GetAllTasks()
+    /// <summary>
+    /// Get all pick tasks with in progress status
+    /// </summary>
+    /// <returns>List of pick tasks</returns>
+    public async Task<IEnumerable<PickTaskResponse>> GetAllTasks()
     {
-        IEnumerable<PickingTask> pickingTaskList = await _pickingRepo.GetAllTasks();
+        IEnumerable<PickTask> pickingTaskList = await _pickingRepo.GetAllTasksAsync();
 
         return pickingTaskList.Select(item => item.ToPickingResponse());
     }
 
-    public async Task<Result<PickingResponse>> GetTaskById(string orderId)
+    /// <summary>
+    /// Get all pick items to gather in magazine
+    /// </summary>
+    /// <param name="pickTaskId"></param>
+    /// <returns></returns>
+    public async Task<Result<IEnumerable<PickItemResponse>>> GetTaskByOrderIdAsync(Guid pickTaskId)
     {
-        if (string.IsNullOrEmpty(orderId))
+        if (pickTaskId == Guid.Empty)
         {
-            return Result<PickingResponse>.Failure("Order is null or empty", StatusCode.BadRequest);
+            return Result<IEnumerable<PickItemResponse>>.Failure("Identifier not correct", StatusCode.BadRequest);
         }
-        PickingTask? pickingTask = await _pickingRepo.GetTaskById(orderId);
+        IEnumerable<PickItem> pickingTask = await _pickingRepo.GetTaskByOrderIdAsync(pickTaskId);
         if (pickingTask == null)
         {
-            return Result<PickingResponse>.Failure("PickingTask not found", StatusCode.NotFound);
+            return Result<IEnumerable<PickItemResponse>>.Failure("PickingTask not found", StatusCode.NotFound);
         }
-        return Result<PickingResponse>.Success(pickingTask.ToPickingResponse());
+
+        return Result<IEnumerable<PickItemResponse>>.Success(pickingTask.Select(item => item.ToPickItemResponse()));
     }
 
-    public async Task<Result<bool>> MakeTaskCompleted(string orderId)
-    {
-        if (string.IsNullOrEmpty(orderId))
-        {
-            return Result<bool>.Failure("Order is null or empty", StatusCode.BadRequest);
-        }
-        bool isDone = await _pickingRepo.MakeTaskCompleted(orderId);
-        if (!isDone == false)
-        {
-            return Result<bool>.Failure("Picking status doesnt't change", StatusCode.NotFound);
-        }
-        return Result<bool>.Success(isDone);
-    }
+    //public async Task<Result<bool>> MakeTaskCompleted(string orderId)
+    //{
+    //    if (string.IsNullOrEmpty(orderId))
+    //    {
+    //        return Result<bool>.Failure("Order is null or empty", StatusCode.BadRequest);
+    //    }
+    //    bool isDone = await _pickingRepo.MakeTaskCompleted(orderId);
+    //    if (!isDone == false)
+    //    {
+    //        return Result<bool>.Failure("Picking status doesnt't change", StatusCode.NotFound);
+    //    }
+    //    return Result<bool>.Success(isDone);
+    //}
 }

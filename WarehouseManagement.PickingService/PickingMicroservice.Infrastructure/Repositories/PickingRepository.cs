@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PickingMicroservice.Core.Domain.Entities;
 using PickingMicroservice.Core.Enum;
+using PickingMicroservice.Core.RabbitMQ.InventoryConsumer;
 using PickingMicroservice.Infrastructure.DatabaseContext;
 
 namespace PickingMicroservice.Infrastructure.Repositories;
@@ -12,25 +13,47 @@ public class PickingRepository : IPickingRepository
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<PickingTask>> GetAllTasks()
+    public async Task<PickTask> CreatePickTask(PickingMessage message)
     {
-        return await _dbContext.PickingTasks.Where(item => item.Status == PickStatus.InProgress).ToListAsync();
-    }
-
-    public async Task<PickingTask?> GetTaskById(string orderId)
-    {
-        return await _dbContext.PickingTasks.FirstOrDefaultAsync(item => item.OrderId == orderId);
-    }
-
-    public async Task<bool> MakeTaskCompleted(string orderId)
-    {
-        PickingTask? pickingTask = await GetTaskById(orderId);
-        if (pickingTask == null)
+        PickTask pickTask = new PickTask()
         {
-            return false;
-        }
-        pickingTask.Status = PickStatus.Completed;
+            CreatedAt = message.CreatedAt,
+            CustomerName = message.CustomerName,
+            Items = message.Items.Select(item => new PickItem {
+                Quantity = item.Quantity,
+                SKU = item.SKU,
+            }).ToList(),
+            OrderNumber = message.OrderNumber,
+            OrderId = message.orderId,
+            Status = PickTaskStatus.InProgress,
+            
+        };
+        _dbContext.PickTasks.Add(pickTask);
         await _dbContext.SaveChangesAsync();
-        return true;
+        return pickTask;
     }
+
+    public async Task<IEnumerable<PickTask>> GetAllTasksAsync()
+    {
+        return await _dbContext.PickTasks.Where(item => item.Status == PickTaskStatus.InProgress).ToListAsync();
+    }
+
+    public async Task<IEnumerable<PickItem>> GetTaskByOrderIdAsync(Guid pickTaskId)
+    {
+      return await _dbContext.PickItem.Where(item => item.PickTaskId == pickTaskId).ToListAsync();
+    }
+
+  
+
+    //public async Task<bool> MakeTaskCompleted(string orderId)
+    //{
+    //    PickTask? pickingTask = await GetTaskById(orderId);
+    //    if (pickingTask == null)
+    //    {
+    //        return false;
+    //    }
+    //    pickingTask.Status = PickTaskStatus.Completed;
+    //    await _dbContext.SaveChangesAsync();
+    //    return true;
+    //}
 }

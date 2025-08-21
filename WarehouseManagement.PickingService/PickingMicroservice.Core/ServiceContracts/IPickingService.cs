@@ -1,12 +1,12 @@
 ﻿using PickingMicroservice.Core.DTO;
 using PickingMicroservice.Core.Result;
+using PickingMicroservice.Core.Service;
 
-namespace PickingMicroservice.Core.ServiceContracts
+namespace PickingMicroservice.Core.ServiceContracts;
+
+public interface IPickingService
 {
-    public interface IPickingService
-    {
-        Task<IEnumerable<PickingResponse>> GetAllTasks();
-        Task<Result<PickingResponse>> GetTaskById(string orderId);
-        Task<Result<bool>> MakeTaskCompleted(string orderId);
-    }
+    Task<IEnumerable<PickTaskResponse>> GetAllTasks();
+    Task<Result<IEnumerable<PickItemResponse>>> GetTaskByOrderIdAsync(Guid pickTaskId);
+    //Task<Result<bool>> MakeTaskCompleted(string orderId);
 }

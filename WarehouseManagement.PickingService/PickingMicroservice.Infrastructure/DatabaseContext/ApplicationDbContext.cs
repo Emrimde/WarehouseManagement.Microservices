@@ -10,5 +10,6 @@ public class ApplicationDbContext : DbContext
     public ApplicationDbContext()
     {
     }
-    public DbSet<PickingTask> PickingTasks { get; set; }
+    public DbSet<PickTask> PickTasks { get; set; }
+    public DbSet<PickItem> PickItem { get; set; }
 }
