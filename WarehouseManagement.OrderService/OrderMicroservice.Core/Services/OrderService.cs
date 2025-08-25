@@ -1,4 +1,6 @@
-﻿using OrderMicroservice.Core.Domain.Entities;
+﻿using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
+using OrderMicroservice.Core.Domain.Entities;
 using OrderMicroservice.Core.Domain.RepositoryContracts;
 using OrderMicroservice.Core.DTO.InventoryDTO;
 using OrderMicroservice.Core.DTO.OrderDTO;
@@ -16,12 +18,14 @@ public class OrderService : IOrderService
     private readonly IRabbitMQPublisher _publisher;
     private readonly ProductMicroserviceClient _productClient;
     private readonly IOrderRepository _orderRepo;
-    public OrderService(InventoryMicroserviceClient inventoryClient, ProductMicroserviceClient productClient, IOrderRepository orderRepo, IRabbitMQPublisher publisher)
+    private readonly IDistributedCache _cache;
+    public OrderService(InventoryMicroserviceClient inventoryClient, ProductMicroserviceClient productClient, IOrderRepository orderRepo, IRabbitMQPublisher publisher, IDistributedCache cache)
     {
         _inventoryClient = inventoryClient;
         _productClient = productClient;
         _orderRepo = orderRepo;
         _publisher = publisher;
+        _cache = cache;
     }
     public async Task<Result<OrderResponse>> AddOrder(OrderAddRequest request)
     {
@@ -71,49 +75,99 @@ public class OrderService : IOrderService
         order.Items.ToList().ForEach(item => item.Order = order);
         Order createdOrder = await _orderRepo.AddOrder(order);
 
-        if(createdOrder == null)
+        if (createdOrder == null)
         {
             return Result<OrderResponse>.Failure($"Order not created", StatusCode.BadRequest);
         }
 
-        _publisher.Publish("order.created", new OrderCreateMessage(request.Items,order.Id.ToString(),order.CreatedAt,order.CustomerName,order.OrderNumber));
-        
+        _publisher.Publish("order.created", new OrderCreateMessage(request.Items, order.Id.ToString(), order.CreatedAt, order.CustomerName, order.OrderNumber));
+
+        await _cache.RemoveAsync("orders:all");
         return Result<OrderResponse>.Success(createdOrder.ToOrderResponse());
     }
 
     public async Task<Result<bool>> DeleteOrder(Guid id)
     {
         bool isDeleted = await _orderRepo.DeleteOrder(id);
-        if (!isDeleted) {
+        if (!isDeleted)
+        {
 
-            return Result<bool>.Failure("Order with given id not exitst",StatusCode.NotFound);
+            return Result<bool>.Failure("Order with given id not exitst", StatusCode.NotFound);
         }
+
+        await _cache.RemoveAsync("orders:all");
+        await _cache.RemoveAsync($"order:{id}");
+        await _cache.RemoveAsync($"orderStatus:{id}");
         return Result<bool>.Success(isDeleted);
     }
 
     public async Task<IEnumerable<OrderResponse>> GetAllOrders()
     {
+        string cacheKey = "orders:all";
+        string? cacheResponse = await _cache.GetStringAsync(cacheKey);
+
+        if (!string.IsNullOrEmpty(cacheResponse))
+        {
+            IEnumerable<OrderResponse>? ordersListFromCache = JsonConvert.DeserializeObject<IEnumerable<OrderResponse>>(cacheResponse);
+            return ordersListFromCache!;
+        }
+
         IEnumerable<Order> orders = await _orderRepo.GetAllOrders();
+
+        string ordersInJson = JsonConvert.SerializeObject(orders);
+        await _cache.SetStringAsync(cacheKey, ordersInJson, new DistributedCacheEntryOptions()
+            .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
+            .SetSlidingExpiration(TimeSpan.FromMinutes(2.5))); 
+        
+
         return orders.Select(item => item.ToOrderResponse());
     }
 
     public async Task<Result<OrderResponse>> GetOrderById(Guid id)
     {
+        string cacheKey = $"order:{id}";
+        string? cacheResponse = await _cache.GetStringAsync(cacheKey);
+
+        if (!string.IsNullOrEmpty(cacheResponse))
+        {
+            OrderResponse? orderFromCache = JsonConvert.DeserializeObject<OrderResponse>(cacheResponse);
+            return Result<OrderResponse>.Success(orderFromCache!);
+        }
+
         Order? order = await _orderRepo.GetOrderById(id);
-        if(order == null)
+        if (order == null)
         {
             return Result<OrderResponse>.Failure("Order with given id not exist", StatusCode.NotFound);
         }
+
+        string orderInJson = JsonConvert.SerializeObject(order);
+        await _cache.SetStringAsync(cacheKey, orderInJson, new DistributedCacheEntryOptions()
+            .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
+            .SetSlidingExpiration(TimeSpan.FromMinutes(2.5)));
+
         return Result<OrderResponse>.Success(order.ToOrderResponse());
     }
 
     public async Task<Result<string>> GetOrderStatusById(Guid id)
     {
+        string cacheKey = $"orderStatus:{id}";
+        string? cacheResponse = await _cache.GetStringAsync(cacheKey);
+
+        if (!string.IsNullOrEmpty(cacheResponse))
+        {
+            string? orderStatusFromCache = JsonConvert.DeserializeObject<string>(cacheResponse);
+            return Result<string>.Success(orderStatusFromCache!);
+        }
+
         string? orderStatus = await _orderRepo.GetOrderStatusById(id);
-        if(orderStatus == null)
+        if (orderStatus == null)
         {
             return Result<string>.Failure("Order with given id not exitst", StatusCode.NotFound);
         }
+
+        string orderStatusInJson = JsonConvert.SerializeObject(orderStatus);
+        await _cache.SetStringAsync(cacheKey, orderStatusInJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)).SetSlidingExpiration(TimeSpan.FromMinutes(2.5)));
+
         return Result<string>.Success(orderStatus);
     }
 }

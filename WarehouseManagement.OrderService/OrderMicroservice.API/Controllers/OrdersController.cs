@@ -59,7 +59,6 @@ namespace OrderMicroservice.API.Controllers
             return Ok(response.Value);
         }
 
-
         // DELETE: api/Orders/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(Guid id)
@@ -71,6 +70,5 @@ namespace OrderMicroservice.API.Controllers
             }
             return NoContent();
         }
-
     }
 }

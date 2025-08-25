@@ -5,8 +5,6 @@ using InventoryMicroservice.Core.ServiceContracts;
 using InventoryMicroservice.Infrastructure.DatabaseContext;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace InventoryMicroservice.API.Controllers;
 

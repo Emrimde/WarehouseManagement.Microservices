@@ -3,7 +3,7 @@ services:
     image: ${DOCKER_REGISTRY-}productserviceapi
     build:
       context: .
-      dockerfile: ProductService.API/Dockerfile
+      dockerfile: ProductMicroservice.API/Dockerfile
     environment:
         - HOST=db
         - USERNAME=postgres
@@ -24,74 +24,74 @@ services:
         - product-postgres-network
         - warehouse-network
 
-  inventorymicroservice.api:
-    image: inventory-microservice:v1.1
-    environment:
-        - HOST=inventory-db
-        - USERNAME=postgres
-        - PASSWORD=admin
-        - DATABASE=Inventoriesdb
-        - PORT=5432
-        - ASPNETCORE_ENVIRONMENT=Development
-        - REDIS_HOST=redis
-        - REDIS_PORT=6379
-        - RabbitMQ_HOSTNAME=rabbitmqq  
-        - RabbitMQ_USERNAME=user
-        - RabbitMQ_PASSWORD=admin
-        - RabbitMQ_PORT=5672
-        - RabbitMQ_ProductExchange=product.exchange
-    entrypoint: ["sh", "-c", "sleep 10 && dotnet InventoryMicroservice.API.dll"]
-    ports:
-        - 5054:8080
-        - 7115:8081
-    networks:
-        - inventory-postgres-network
-        - warehouse-network
-    depends_on:
-        - rabbitmqq
+  # inventorymicroservice.api:
+  #   image: inventory-microservice:v1.1
+  #   environment:
+  #       - HOST=inventory-db
+  #       - USERNAME=postgres
+  #       - PASSWORD=admin
+  #       - DATABASE=Inventoriesdb
+  #       - PORT=5432
+  #       - ASPNETCORE_ENVIRONMENT=Development
+  #       - REDIS_HOST=redis
+  #       - REDIS_PORT=6379
+  #       - RabbitMQ_HOSTNAME=rabbitmqq  
+  #       - RabbitMQ_USERNAME=user
+  #       - RabbitMQ_PASSWORD=admin
+  #       - RabbitMQ_PORT=5672
+  #       - RabbitMQ_ProductExchange=product.exchange
+  #   entrypoint: ["sh", "-c", "sleep 10 && dotnet InventoryMicroservice.API.dll"]
+  #   ports:
+  #       - 5054:8080
+  #       - 7115:8081
+  #   networks:
+  #       - inventory-postgres-network
+  #       - warehouse-network
+  #   depends_on:
+  #       - rabbitmqq
   
-  ordermicroservice.api:
-    image: order-microservice:v1.2
-    ports:
-        - 5055:8080
-        - 5056:8081
-    networks:
-        - warehouse-network
-        - order-postgres-network
-    environment:
-        - DB_NAME=OrdersDb
-        - DB_PORT=5432
-        - DB_PASSWORD=admin
-        - DB_HOST=order-db
-        - DB_USERNAME=postgres
-        - ASPNETCORE_ENVIRONMENT=Development
+  # ordermicroservice.api:
+  #   image: order-microservice:v1.2
+  #   ports:
+  #       - 5055:8080
+  #       - 5056:8081
+  #   networks:
+  #       - warehouse-network
+  #       - order-postgres-network
+  #   environment:
+  #       - DB_NAME=OrdersDb
+  #       - DB_PORT=5432
+  #       - DB_PASSWORD=admin
+  #       - DB_HOST=order-db
+  #       - DB_USERNAME=postgres
+  #       - ASPNETCORE_ENVIRONMENT=Development
 
-  order-db:
-    image: postgres:latest
-    ports:
-        - 5433:5432
-    volumes:
-        - ./order-postgres-init:/docker-entrypoint-initdb.d
-    environment:
-        - POSTGRES_USER=postgres
-        - POSTGRES_PASSWORD=admin
-        - POSTGRES_DB=OrdersDb
-    networks:
-        - order-postgres-network
+  # order-db:
+  #   image: postgres:latest
+  #   ports:
+  #       - 5433:5432
+  #   volumes:
+  #       - ./order-postgres-init:/docker-entrypoint-initdb.d
+  #   environment:
+  #       - POSTGRES_USER=postgres
+  #       - POSTGRES_PASSWORD=admin
+  #       - POSTGRES_DB=OrdersDb
+  #   networks:
+  #       - order-postgres-network
         
 
-  inventory-db:
-    image: postgres:latest
-    ports:
-        - 5434:5432
-    volumes:
-        - ./inventory-postgres-init:/docker-entrypoint-initdb.d
-    networks:
-        - inventory-postgres-network
-    environment:
-        - POSTGRES_USER=postgres
-        - POSTGRES_PASSWORD=admin
-        - POSTGRES_DB=Inventoriesdb
+  # inventory-db:
+  #   image: postgres:latest
+  #   ports:
+  #       - 5434:5432
+  #   volumes:
+  #       - ./inventory-postgres-init:/docker-entrypoint-initdb.d
+  #   networks:
+  #       - inventory-postgres-network
+  #   environment:
+  #       - POSTGRES_USER=postgres
+  #       - POSTGRES_PASSWORD=admin
+  #       - POSTGRES_DB=Inventoriesdb
 
   db:
     image: postgres:latest

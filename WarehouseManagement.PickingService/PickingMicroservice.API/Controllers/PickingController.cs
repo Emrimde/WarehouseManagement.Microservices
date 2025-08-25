@@ -14,12 +14,14 @@ public class PickingController : ControllerBase
     {
         _pickingService = pickingService;
     }
+
     [HttpGet("tasks")] 
     public async Task<ActionResult> GetAllTasks()
     {
         IEnumerable<PickTaskResponse> response = await _pickingService.GetAllTasks();
         return Ok(response);
     }
+
     [HttpGet("tasks/{pickTaskId}")]
     public async Task<ActionResult<PickTaskResponse>> GetTaskById(Guid pickTaskId)
     {
@@ -31,6 +33,7 @@ public class PickingController : ControllerBase
         return Ok(response.Value);
     }
 
+    // will be implemented soon
     //[HttpPost("tasks/{orderId}/complete")]
     //public async Task<ActionResult<bool>> PostTaskCompleted(string orderId)
     //{

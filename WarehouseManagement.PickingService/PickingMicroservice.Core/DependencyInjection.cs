@@ -11,6 +11,9 @@ public static class DependencyInjection
         services.AddScoped<IPickingService, PickingService>();
         services.AddSingleton<IRabbitMQInventoryConsumer, RabbitMQInventoryConsumer>();
         services.AddHostedService<RabbitMQInventoryHostedService>();
+
+        services.AddStackExchangeRedisCache(options => options.Configuration = $"{Environment.GetEnvironmentVariable("REDIS_HOST")}:{Environment.GetEnvironmentVariable("REDIS_PORT")}");
         return services;
+        
     }
 }
