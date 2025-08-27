@@ -1,33 +1,190 @@
 services:
-    product-microservice:
-        image: kkrzysztofapplications/warehouse-product-service:latest
-        environment:
-            - HOST=db
-            - USERNAME=postgres
-            - PASSWORD=admin
-            - DATABASE=ProductsDb
-            - ASPNETCORE_ENVIRONMENT=Development
-        ports:
-            - 5049:8080
-            - 7112:8081
-        networks:
-            - product-postgres-network
-    
-    db:
-        image: postgres:latest
-        volumes:
-            - ./postgres-init:/docker-entrypoint-initdb.d
-        ports:
-            - 5432:5432
-        networks:
-            - product-postgres-network
-        environment:
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=admin
-            - POSTGRES_DB=ProductsDb
+  pickingmicroservice.api:
+    image: kkrzysztofapplications/pickingmicroservice:latest
+    ports:
+        - 8000:8080
+        - 8001:8081
+    networks:
+        - warehouse-network
+        - picking-postgres-network
+    environment:
+        - DB_NAME=PickingDb
+        - DB_PORT=5432
+        - DB_PASSWORD=admin
+        - DB_USERNAME=postgres
+        - DB_HOST=picking-db
+        - RABBITMQ_ORDER_EXCHANGE=order.exchange
+        - ASPNETCORE_ENVIRONMENT=Development
+        - RABBITMQ_HOST=rabbitmqq
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_PASSWORD=admin
+        - RABBITMQ_USERNAME=user
+        - RABBITMQ_INVENTORY_EXCHANGE=inventory.exchange
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+
+  ordermicroservice.api:
+    image: kkrzysztofapplications/ordermicroservice:latest
+    ports:
+        - 4001:8080
+        - 4002:8081
+    networks:
+        - warehouse-network
+        - order-postgres-network
+    environment:
+        - DB_NAME=OrdersDb
+        - DB_PORT=5432
+        - DB_PASSWORD=admin
+        - DB_USERNAME=postgres
+        - DB_HOST=order-db
+        - RABBITMQ_ORDER_EXCHANGE=order.exchange
+        - ASPNETCORE_ENVIRONMENT=Development
+        - RABBIT_MQ_HOSTNAME=rabbitmqq
+        - RABBIT_MQ_PORT=5672
+        - RABBIT_MQ_PASSWORD=admin
+        - RABBIT_MQ_USERNAME=user
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+      
+  productmicroservice.api:
+    image:  kkrzysztofapplications/productmicroservice:latest
+    ports:
+      - 6001:8080
+      - 6002:8081
+    environment:
+        - HOST=product-db
+        - USERNAME=postgres
+        - PASSWORD=admin
+        - DATABASE=ProductsDb
+        - ASPNETCORE_ENVIRONMENT=Development
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+        - RABBITMQ_HOSTNAME=rabbitmqq
+        - RABBITMQ_USERNAME=user
+        - RABBITMQ_PASSWORD=admin
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_ProductExchange=product.exchange
+    networks:
+        - product-postgres-network
+        - warehouse-network
+
+  inventorymicroservice.api:
+    image: kkrzysztofapplications/inventorymicroservice:latest
+    environment:
+        - HOST=inventory-db
+        - USERNAME=postgres
+        - PASSWORD=admin
+        - DATABASE=Inventoriesdb
+        - PORT=5432
+        - ASPNETCORE_ENVIRONMENT=Development
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
+        - RABBITMQ_HOSTNAME=rabbitmqq  
+        - RABBITMQ_USERNAME=user
+        - RABBITMQ_PASSWORD=admin
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_PRODUCT_EXCHANGE=product.exchange
+        - RABBITMQ_ORDER_EXCHANGE=order.exchange
+        - RABBITMQ_INVENTORY_EXCHANGE=inventory.exchange
+    ports:
+        - 7000:8080
+        - 7001:8081
+    networks:
+        - inventory-postgres-network
+        - warehouse-network
+
+  order-db:
+    image: postgres:latest
+    ports:
+        - 5444:5432
+    volumes:
+        - ./order-postgres-init:/docker-entrypoint-initdb.d
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=OrdersDb
+    networks:
+        - order-postgres-network
         
+  picking-db:
+    image: postgres:latest
+    ports:
+        - 5430:5432
+    volumes:
+        - ../pick-postgres-init:/docker-entrypoint-initdb.d
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=PickingDb
+    networks:
+        - picking-postgres-network
+
+  inventory-db:
+    image: postgres:latest
+    ports:
+        - 5434:5432
+    volumes:
+        - ./inventory-postgres-init:/docker-entrypoint-initdb.d
+    networks:
+        - inventory-postgres-network
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=Inventoriesdb
+
+  product-db:
+    image: postgres:latest
+    ports:
+        - 5432:5432
+    volumes:
+        - ./product-postgres-init:/docker-entrypoint-initdb.d
+    networks:
+        - product-postgres-network
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=ProductsDb
+
+  redis:
+    image: redis:latest
+    ports:
+        - 6379:6379
+    networks:
+        - warehouse-network
+    volumes:
+        - ../redis-cache:/data
+
+  apigateway:
+    image: apigateway
+    build:
+        context: ../WarehouseApiGateway
+        dockerfile: WarehouseApiGateway/Dockerfile
+    ports:
+        - 5000:8080
+    networks:
+        - warehouse-network
+
+  rabbitmqq:
+    image: rabbitmq:3.13-management
+    ports:
+        - 5673:5672   
+        - 15672:15672  
+    environment:
+        - RABBITMQ_DEFAULT_USER=user  
+        - RABBITMQ_DEFAULT_PASS=admin 
+    networks:
+        - warehouse-network
+
 networks:
     product-postgres-network:
+        driver: "bridge"
+    inventory-postgres-network:
+        driver: "bridge"
+    order-postgres-network:
+        driver: "bridge"
+    picking-postgres-network:
+        driver: "bridge"
+    warehouse-network:
         driver: "bridge"
 
 

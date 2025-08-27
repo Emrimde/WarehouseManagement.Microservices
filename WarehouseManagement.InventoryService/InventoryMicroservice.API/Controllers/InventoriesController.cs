@@ -48,7 +48,7 @@ public class InventoriesController : ControllerBase
         return await _context.InventoryItems.ToListAsync();
     }
 
-    // POST: api/InventoryItems/{sku}/adjust
+    // POST: api/Invetories/{sku}/adjust
     /// <summary>
     /// Adjusts the available quantity for a specific product.
     /// </summary>

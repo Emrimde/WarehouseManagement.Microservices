@@ -4,5 +4,6 @@
     {
         void Consume();
         void Dispose();
+        void Initialize(int miliseconds = 3000);
     }
 }

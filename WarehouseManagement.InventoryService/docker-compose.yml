@@ -1,6 +1,6 @@
 services:
   ordermicroservice.api:
-    image: ordermicroservice.api:1.2
+    image: kkrzysztofapplications/ordermicroservice:latest
     # build:
     #   context: .
     #   dockerfile: OrderMicroservice.API/Dockerfile
@@ -22,9 +22,11 @@ services:
         - RABBIT_MQ_PORT=5672
         - RABBIT_MQ_PASSWORD=admin
         - RABBIT_MQ_USERNAME=user
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
       
   productmicroservice.api:
-    image: productmicroservice.api:v1.4
+    image: kkrzysztofapplications/productmicroservice:latest
     ports:
       - 6001:8080
       - 6002:8081
@@ -73,6 +75,29 @@ services:
         - inventory-postgres-network
         - warehouse-network
 
+  pickingmicroservice.api:
+    image: pickingmicroservice.api:v1.2
+    ports:
+        - 8000:8080
+        - 8001:8081
+    networks:
+        - warehouse-network
+        - picking-postgres-network
+    environment:
+        - DB_NAME=PickingDb
+        - DB_PORT=5432
+        - DB_PASSWORD=admin
+        - DB_USERNAME=postgres
+        - DB_HOST=picking-db
+        - RABBITMQ_ORDER_EXCHANGE=order.exchange
+        - ASPNETCORE_ENVIRONMENT=Development
+        - RABBITMQ_HOST=rabbitmqq
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_PASSWORD=admin
+        - RABBITMQ_USERNAME=user
+        - RABBITMQ_INVENTORY_EXCHANGE=inventory.exchange
+        - REDIS_HOST=redis
+        - REDIS_PORT=6379
 
   order-db:
     image: postgres:latest
@@ -114,6 +139,19 @@ services:
         - POSTGRES_PASSWORD=admin
         - POSTGRES_DB=ProductsDb
 
+  picking-db:
+    image: postgres:latest
+    ports:
+        - 5430:5432
+    volumes:
+        - ../pick-postgres-init:/docker-entrypoint-initdb.d
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=PickingDb
+    networks:
+        - picking-postgres-network
+
   redis:
     image: redis:latest
     ports:
@@ -152,6 +190,8 @@ networks:
     order-postgres-network:
         driver: "bridge"
     warehouse-network:
+        driver: "bridge"
+    picking-postgres-network:
         driver: "bridge"
 
 

@@ -11,6 +11,7 @@ public class RabbitMQOrderCreateHostedService : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
+        _orderCreateConsumer.Initialize(3000);
         _orderCreateConsumer.Consume();
         return Task.CompletedTask;
     }

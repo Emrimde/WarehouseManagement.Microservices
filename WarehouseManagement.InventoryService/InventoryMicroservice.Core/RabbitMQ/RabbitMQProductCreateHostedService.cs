@@ -10,7 +10,8 @@ public class RabbitMQProductCreateHostedService : IHostedService
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
-    { 
+    {
+        _productCreateConsumer.Initialize();
         _productCreateConsumer.Consume();
         return Task.CompletedTask;
     }

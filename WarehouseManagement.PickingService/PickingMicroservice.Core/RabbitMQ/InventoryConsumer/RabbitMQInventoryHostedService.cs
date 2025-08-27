@@ -10,6 +10,7 @@ public class RabbitMQInventoryHostedService : IHostedService
     }
     public Task StartAsync(CancellationToken cancellationToken)
     {
+        _inventoryConsumer.Initialize(3000);
         _inventoryConsumer.Consume();
         return Task.CompletedTask;
     }

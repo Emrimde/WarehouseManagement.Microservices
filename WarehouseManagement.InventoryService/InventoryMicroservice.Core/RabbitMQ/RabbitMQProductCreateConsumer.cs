@@ -9,11 +9,10 @@ using System.Text;
 namespace InventoryMicroservice.Core.RabbitMQ;
 public class RabbitMQProductCreateConsumer : IDisposable, IRabbitMQProductCreateConsumer
 {
-    private readonly IModel _channel;
-    private readonly IConnection _connection;
+    private IModel _channel = default!;
+    private IConnection _connection = default!;
     private readonly ILogger<RabbitMQProductCreateConsumer> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
-
     private readonly string _exchangeName;
     public RabbitMQProductCreateConsumer(
      ILogger<RabbitMQProductCreateConsumer> logger,
@@ -22,10 +21,34 @@ public class RabbitMQProductCreateConsumer : IDisposable, IRabbitMQProductCreate
         _logger = logger;
         _scopeFactory = scopeFactory;
         _exchangeName = Environment.GetEnvironmentVariable("RABBITMQ_PRODUCT_EXCHANGE")!;
+    }
 
-        // debug: wypisz wartości
-        var host = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME")!;
-        var port = Environment.GetEnvironmentVariable("RABBITMQ_PORT")!;
+    public void Initialize(int miliseconds = 3000)
+    {
+        bool connected = false;
+        int attempt = 0;
+
+        while (!connected)
+        {
+            try
+            {
+                SetupConnectionAndChannel();
+                connected = true;
+                _logger.LogInformation("RabbitMQ connection success");
+            }
+            catch (Exception ex)
+            {
+                attempt++;
+                _logger.LogError($"Failed to connect to RabbitMQ. Attempt: {attempt}");
+                Thread.Sleep(miliseconds);
+            }
+        }
+    }
+
+    private void SetupConnectionAndChannel()
+    {
+        string host = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME")!;
+        string port = Environment.GetEnvironmentVariable("RABBITMQ_PORT")!;
         Console.WriteLine($"[DEBUG Consumer] Host={host}, Port={port}, Exchange={_exchangeName}");
 
         var factory = new ConnectionFactory
@@ -33,19 +56,18 @@ public class RabbitMQProductCreateConsumer : IDisposable, IRabbitMQProductCreate
             HostName = host,
             Port = int.Parse(port),
             UserName = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME")!,
-            Password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD")!
+            Password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD")!,
         };
 
         _connection = factory.CreateConnection();
         _channel = _connection.CreateModel();
     }
 
-
     public void Consume()
     {
         string routingKey = "product.create";
         string queueName = "inventory.product.create.queue";
-    
+
         _channel.ExchangeDeclare(exchange: _exchangeName, type: ExchangeType.Direct, durable: true);
 
         _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
@@ -85,4 +107,6 @@ public class RabbitMQProductCreateConsumer : IDisposable, IRabbitMQProductCreate
         _channel.Dispose();
         _connection.Dispose();
     }
+
+    
 }

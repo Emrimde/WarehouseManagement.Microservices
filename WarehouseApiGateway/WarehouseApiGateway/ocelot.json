@@ -1,65 +1,241 @@
 {
   "Routes": [
     {
-      "UpstreamPathTemplate": "/gateway/Products",
+      "UpstreamPathTemplate": "/gateway/products",
       "DownstreamPathTemplate": "/api/Products",
+      "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "productservice.api",
+          "Host": "productmicroservice.api",
           "Port": 8080
         }
       ],
-      "UpstreamHttpMethod": [
-        "Get",
-        "Post",
-        "Options"
-      ],
+      "UpstreamHttpMethod": [ "GET", "POST", "OPTIONS" ],
       "UpstreamScheme": "http",
-      "FileCacheOptions": {
-        "TtlSeconds": 30
-      },
+      "FileCacheOptions": { "TtlSeconds": 30 },
       "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "60s",
         "Limit": 3,
-        "Period": "60s", // moze byc w sekundach minutach,godzinach kolejno s,m,h; wiec przez minute dostepne są 3 requesty do tego endpointa
-        "HttpStatusCode": 429, // jaki typ bledu wyskoczy jak bedzie za duzo requestow
-        "EnableRateLimiting": true, // odpalamy rate limit
-        "PeriodTimespan": 30 // po 30 sekundach znowu można wysyłać requesty (trzy)
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 60
       }
     },
     {
-      "UpstreamPathTemplate": "/gateway/Products/{id}",
-      "DownstreamPathTemplate": "/api/Products/{id}",
+      "UpstreamPathTemplate": "/gateway/products/by-sku/{sku}",
+      "DownstreamPathTemplate": "/api/Products/{sku}",
+      "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "productservice.api",
+          "Host": "productmicroservice.api",
           "Port": 8080
         }
       ],
-      "UpstreamHttpMethod": [
-        "Get",
-        "Put",
-        "Delete",
-        "Options"
-      ],
+      "UpstreamHttpMethod": [ "GET", "OPTIONS" ],
       "UpstreamScheme": "http",
-
-      "FileCacheOptions": {
-        "TtlSeconds": 15 
-      },
-
-      
+      "FileCacheOptions": { "TtlSeconds": 15 },
       "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "30s",
         "Limit": 10,
-        "Period": "30s", 
-        "HttpStatusCode": 429, 
-        "EnableRateLimiting": true, 
-        "PeriodTimespan": 15 
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 30
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/products/{id}",
+      "DownstreamPathTemplate": "/api/Products/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "productmicroservice.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": [ "GET", "PUT", "DELETE", "OPTIONS" ],
+      "UpstreamScheme": "http",
+      "FileCacheOptions": { "TtlSeconds": 15 },
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "30s",
+        "Limit": 10,
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 30
+      }
+    },
+
+    {
+      "UpstreamPathTemplate": "/gateway/picking/tasks",
+      "DownstreamPathTemplate": "/api/picking/tasks",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "pickingmicroservice.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": [ "GET", "OPTIONS" ],
+      "UpstreamScheme": "http",
+      "FileCacheOptions": { "TtlSeconds": 15 },
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "30s",
+        "Limit": 10,
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 30
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/picking/tasks/{pickTaskId}",
+      "DownstreamPathTemplate": "/api/picking/tasks/{pickTaskId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "pickingmicroservice.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": [ "GET", "OPTIONS" ],
+      "UpstreamScheme": "http",
+      "FileCacheOptions": { "TtlSeconds": 15 },
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "30s",
+        "Limit": 10,
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 30
+      }
+    },
+
+    {
+      "UpstreamPathTemplate": "/gateway/inventories",
+      "DownstreamPathTemplate": "/api/inventories",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "inventorymicroservice.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": [ "GET", "OPTIONS" ],
+      "UpstreamScheme": "http",
+      "FileCacheOptions": { "TtlSeconds": 15 },
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "30s",
+        "Limit": 10,
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 30
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/inventories/{sku}",
+      "DownstreamPathTemplate": "/api/inventories/{sku}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "inventorymicroservice.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": [ "GET", "OPTIONS" ],
+      "UpstreamScheme": "http",
+      "FileCacheOptions": { "TtlSeconds": 15 },
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "30s",
+        "Limit": 10,
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 30
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/inventories/{sku}/adjust",
+      "DownstreamPathTemplate": "/api/inventories/{sku}/adjust",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "inventorymicroservice.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": [ "PATCH", "OPTIONS" ],
+      "UpstreamScheme": "http",
+      "FileCacheOptions": { "TtlSeconds": 15 },
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "30s",
+        "Limit": 10,
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 30
+      }
+    },
+
+    {
+      "UpstreamPathTemplate": "/gateway/orders",
+      "DownstreamPathTemplate": "/api/orders",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ordermicroservice.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": [ "GET", "POST", "OPTIONS" ],
+      "UpstreamScheme": "http",
+      "FileCacheOptions": { "TtlSeconds": 15 },
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "30s",
+        "Limit": 10,
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 30
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/orders/{id}",
+      "DownstreamPathTemplate": "/api/orders/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ordermicroservice.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": [ "GET", "DELETE", "OPTIONS" ],
+      "UpstreamScheme": "http",
+      "FileCacheOptions": { "TtlSeconds": 15 },
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "30s",
+        "Limit": 10,
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 30
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/orders/order-status/{id}",
+      "DownstreamPathTemplate": "/api/orders/order-status/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ordermicroservice.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": [ "GET", "OPTIONS" ],
+      "UpstreamScheme": "http",
+      "FileCacheOptions": { "TtlSeconds": 15 },
+      "RateLimitOptions": {
+        "EnableRateLimiting": true,
+        "Period": "30s",
+        "Limit": 10,
+        "HttpStatusCode": 429,
+        "PeriodTimespan": 30
       }
     }
   ],
-
   "GlobalConfiguration": {
     "BaseUrl": "http://localhost:5000"
-
   }
 }

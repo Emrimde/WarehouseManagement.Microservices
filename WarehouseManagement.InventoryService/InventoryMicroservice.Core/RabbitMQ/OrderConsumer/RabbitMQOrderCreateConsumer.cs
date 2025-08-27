@@ -10,8 +10,8 @@ using System.Text;
 namespace InventoryMicroservice.Core.RabbitMQ.OrderConsumer;
 public class RabbitMQOrderCreateConsumer : IDisposable, IRabbitMQOrderCreateConsumer
 {
-    private readonly IModel _channel;
-    private readonly IConnection _connection;
+    private  IModel _channel = default!;
+    private  IConnection _connection = default!;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly string _exchangeName;
     private readonly ILogger<RabbitMQOrderCreateConsumer> _logger;
@@ -20,7 +20,32 @@ public class RabbitMQOrderCreateConsumer : IDisposable, IRabbitMQOrderCreateCons
         _logger = logger;
         _scopeFactory = scopeFactory;
         _exchangeName = Environment.GetEnvironmentVariable("RABBITMQ_ORDER_EXCHANGE")!;
+    }
 
+    public void Initialize(int miliseconds = 3000)
+    {
+        bool connected = false;
+        int attempt = 0;
+        while (!connected)
+        {
+            try
+            {
+                SetupConnectionAndChannel();
+                _logger.LogInformation("Connection with RabbitMQ established");
+                connected = true;
+
+            }
+            catch (Exception)
+            {
+                attempt++;
+                _logger.LogInformation($"Connection with RabbitMQ failed. Attempt: {attempt}");
+                Thread.Sleep((int)Math.Pow(miliseconds,attempt));
+            }
+        }
+    }
+
+    public void SetupConnectionAndChannel()
+    {
         string host = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME")!;
         int port = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT")!);
         string username = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME")!;
@@ -74,10 +99,8 @@ public class RabbitMQOrderCreateConsumer : IDisposable, IRabbitMQOrderCreateCons
             }
         };
 
-
         _channel.BasicConsume(queue: queueName, consumer: consumer, autoAck: true);
     }
-
     public void Dispose()
     {
         _channel.Close();
