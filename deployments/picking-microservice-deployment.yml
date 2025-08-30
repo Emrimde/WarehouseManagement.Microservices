@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: picking-microservice-deployment
+  namespace: warehouse-management-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: picking-microservice-deployment
+  template:
+    metadata:
+      labels:
+        app: picking-microservice-deployment
+    spec:
+      containers:
+      - name: picking-microservice-deployment
+        image: warehousemanagement.azurecr.io/pickingmicroservice:latest
+        env:
+        - name: DB_NAME
+          value: "PickingDb"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_PASSWORD
+          value: "admin"
+        - name: DB_USERNAME
+          value: "postgres"
+        - name: DB_HOST
+          value: "picking-db"
+        - name: RABBITMQ_ORDER_EXCHANGE
+          value: "order.exchange"
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: RABBITMQ_HOST
+          value: "rabbitmqq"
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_PASSWORD
+          value: "admin"
+        - name: RABBITMQ_USERNAME
+          value: "user"
+        - name: RABBITMQ_INVENTORY_EXCHANGE
+          value: "inventory.exchange"
+        ports:
+        - containerPort: 8080

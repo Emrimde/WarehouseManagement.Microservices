@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-postgres-deployment
+  namespace: warehouse-management-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-postgres
+  template:
+    metadata:
+      labels:
+        app: order-postgres
+    spec:
+      containers:
+      - name: order-postgres
+        image: warehousemanagement.azurecr.io/order-postgres:latest
+        env:
+        - name: POSTGRES_PASSWORD
+          value: admin
+        - name: POSTGRES_DB
+          value: OrderDb
+        - name: POSTGRES_USER
+          value: postgres 
+        ports:
+        - containerPort: 5432

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-microservice-deployment
+  namespace: warehouse-management-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-microservice
+  template:
+    metadata:
+      labels:
+        app: order-microservice
+    spec:
+      containers:
+      - name: order-microservice
+        image: warehousemanagement.azurecr.io/ordermicroservice:latest
+        env:
+        - name: DB_NAME
+          value: "OrdersDb"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_PASSWORD
+          value: "admin"
+        - name: DB_USERNAME
+          value: "postgres"
+        - name: DB_HOST
+          value: "order-db"
+        - name: RABBITMQ_ORDER_EXCHANGE
+          value: "order.exchange"
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: RABBIT_MQ_HOSTNAME
+          value: "rabbitmqq"
+        - name: RABBIT_MQ_PORT
+          value: "5672"
+        - name: RABBIT_MQ_PASSWORD
+          value: "admin"
+        - name: RABBIT_MQ_USERNAME
+          value: "user"
+        ports:
+        - containerPort: 8080

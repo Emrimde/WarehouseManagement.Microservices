@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-postgres-deployment
+  namespace: warehouse-management-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-postgres-deployment
+  template:
+    metadata:
+      labels:
+        app: product-postgres-deployment
+    spec:
+      containers:
+      - name: product-postgres
+        image: warehousemanagement.azurecr.io/product-postgres
+        env:
+        - name: POSTGRES_PASSWORD
+          value: admin
+        - name: POSTGRES_DB
+          value: ProductsDb
+        - name: POSTGRES_USER
+          value: postgres 
+        ports:
+        - containerPort: 5432

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-postgres-deployment
+  namespace: warehouse-management-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-postgres
+  template:
+    metadata:
+      labels:
+        app: inventory-postgres
+    spec:
+      containers:
+      - name: inventory-postgres
+        image: warehousemanagement.azurecr.io/inventory-postgres:latest
+        env:
+        - name: POSTGRES_PASSWORD
+          value: admin
+        - name: POSTGRES_DB
+          value: InventoryDb
+        - name: POSTGRES_USER
+          value: postgres 
+        ports:
+        - containerPort: 5432

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: picking-postgres-deployment
+  namespace: warehouse-management-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: picking-postgres
+  template:
+    metadata:
+      labels:
+        app: picking-postgres
+    spec:
+      containers:
+      - name: picking-postgres
+        image: warehousemanagement.azurecr.io/pick-postgres:latest
+        env:
+        - name: POSTGRES_PASSWORD
+          value: admin
+        - name: POSTGRES_DB
+          value: PickingDb
+        - name: POSTGRES_USER
+          value: postgres 
+        ports:
+        - containerPort: 5432

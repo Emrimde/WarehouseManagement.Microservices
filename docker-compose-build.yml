@@ -111,7 +111,7 @@ services:
     ports:
         - 5430:5432
     volumes:
-        - ../pick-postgres-init:/docker-entrypoint-initdb.d
+        - ./pick-postgres-init:/docker-entrypoint-initdb.d
     environment:
         - POSTGRES_USER=postgres
         - POSTGRES_PASSWORD=admin

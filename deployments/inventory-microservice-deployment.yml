@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-microservice-deployment
+  namespace: warehouse-management-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-microservice
+  template:
+    metadata:
+      labels:
+        app: inventory-microservice
+    spec:
+      containers:
+      - name: inventory-microservice
+        image: warehousemanagement.azurecr.io/inventorymicroservice:latest
+        env:
+        - name: HOST
+          value: "inventory-db"
+        - name: USERNAME
+          value: "postgres"
+        - name: PASSWORD
+          value: "admin"
+        - name: DATABASE
+          value: "Inventoriesdb"
+        - name: PORT
+          value: "5432"
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: RABBITMQ_HOSTNAME
+          value: "rabbitmqq"
+        - name: RABBITMQ_USERNAME
+          value: "user"
+        - name: RABBITMQ_PASSWORD
+          value: "admin"
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_PRODUCT_EXCHANGE
+          value: "product.exchange"
+        - name: RABBITMQ_ORDER_EXCHANGE
+          value: "order.exchange"
+        - name: RABBITMQ_INVENTORY_EXCHANGE
+          value: "inventory.exchange"
+        ports:
+        - containerPort: 8080
