@@ -3,15 +3,17 @@ kind: Deployment
 metadata:
   name: product-postgres-deployment
   namespace: warehouse-management-namespace
+  labels:
+    app: product-postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: product-postgres-deployment
+      app: product-postgres
   template:
     metadata:
       labels:
-        app: product-postgres-deployment
+        app: product-postgres
     spec:
       containers:
       - name: product-postgres

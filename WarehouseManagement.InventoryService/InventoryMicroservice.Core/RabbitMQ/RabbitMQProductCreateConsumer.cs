@@ -84,13 +84,13 @@ public class RabbitMQProductCreateConsumer : IDisposable, IRabbitMQProductCreate
                 try
                 {
                     _logger.LogInformation("[LOG] - Message from product microservice gained");
-                    var message = Encoding.UTF8.GetString(args.Body.ToArray());
-                    var product = JsonConvert.DeserializeObject<ProductCreateMessage>(message);
+                    string message = Encoding.UTF8.GetString(args.Body.ToArray());
+                    ProductCreateMessage? product = JsonConvert.DeserializeObject<ProductCreateMessage>(message);
 
-                    using var scope = _scopeFactory.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IInventoryRepository>();
+                    using IServiceScope? scope = _scopeFactory.CreateScope();
+                    IInventoryRepository repo = scope.ServiceProvider.GetRequiredService<IInventoryRepository>();
 
-                    await repo.AddEmptyInventoryItemWithSkuAsync(product!.Sku); // After getting a message from product microservice i wanted to create an inventory item.
+                    await repo.initializeInventoryItemForProduct(product!.Sku, product.ProductName); // After getting a message from product microservice i wanted to create an inventory item.
                 }
                 catch (Exception ex)
                 {
@@ -107,6 +107,4 @@ public class RabbitMQProductCreateConsumer : IDisposable, IRabbitMQProductCreate
         _channel.Dispose();
         _connection.Dispose();
     }
-
-    
 }

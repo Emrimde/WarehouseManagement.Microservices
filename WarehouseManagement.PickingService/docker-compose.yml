@@ -1,5 +1,5 @@
 services:
-  pickingmicroservice.api:
+  pickingmicroservice-api:
     image: pickingmicroserviceapi
     build:
       context: .
@@ -37,8 +37,8 @@ services:
     networks:
         - picking-postgres-network
 
-  ordermicroservice.api:
-    image: ordermicroservice.api:v1.0
+  ordermicroservice-api:
+    image: ordermicroservice:latest
     ports:
         - 4001:8080
         - 4002:8081
@@ -58,8 +58,8 @@ services:
         - RABBIT_MQ_PASSWORD=admin
         - RABBIT_MQ_USERNAME=user
       
-  productmicroservice.api:
-    image: productmicroservice.api:v1.0
+  productmicroservice-api:
+    image: productmicroservice:latest
     ports:
       - 6001:8080
       - 6002:8081
@@ -80,8 +80,8 @@ services:
         - product-postgres-network
         - warehouse-network
 
-  inventorymicroservice.api:
-    image: inventorymicroservice.api:v1.0
+  inventorymicroservice-api:
+    image: inventorymicroservice:latest
     environment:
         - HOST=inventory-db
         - USERNAME=postgres

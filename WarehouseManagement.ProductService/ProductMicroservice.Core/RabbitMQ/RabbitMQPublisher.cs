@@ -11,6 +11,7 @@ public class RabbitMQPublisher : IRabbitMQPublisher, IDisposable
     private readonly string _exchangeName;
     public RabbitMQPublisher()
     {
+        Console.WriteLine("[DEBUG] ");
         _exchangeName = Environment.GetEnvironmentVariable("RABBITMQ_ProductExchange")!;
         ConnectionFactory _connectionFactory = new ConnectionFactory()
         {

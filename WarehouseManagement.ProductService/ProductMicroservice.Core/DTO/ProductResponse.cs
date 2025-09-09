@@ -5,6 +5,9 @@ public record ProductResponse
     string Name,
     string Description, 
     string Sku,
-    Guid CategoryId
+    string CategoryName,
+    Guid CategoryId,
+    string Manufacturer,
+    DateTime CreatedAt
 );
 

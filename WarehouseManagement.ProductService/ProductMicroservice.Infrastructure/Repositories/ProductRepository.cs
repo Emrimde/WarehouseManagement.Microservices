@@ -15,7 +15,7 @@ public class ProductRepository : IProductRepository
     public async Task<Product> AddProductAsync(Product product)
     {
         product.IsActive = true;
-        product.CreatedAt = DateTime.UtcNow; ;
+        product.CreatedAt = DateTime.UtcNow; 
         _dbContext.Products.Add(product);
         await _dbContext.SaveChangesAsync();
 
@@ -36,7 +36,7 @@ public class ProductRepository : IProductRepository
 
     public async Task<Product?> GetProductByIdAsync(Guid id)
     {
-        return await _dbContext.Products.FirstOrDefaultAsync(item => item.Id == id);
+        return await _dbContext.Products.Include(item => item.Category).FirstOrDefaultAsync(item => item.Id == id);
     }
 
     public async Task<Product?> GetProductBySkuAsync(string sku)
@@ -46,7 +46,7 @@ public class ProductRepository : IProductRepository
 
     public async Task<IEnumerable<Product>> GetProductsAsync()
     {
-        return await _dbContext.Products.Where(item => item.IsActive == true).ToListAsync();
+        return await _dbContext.Products.Include(item => item.Category).Where(item => item.IsActive == true).ToListAsync();
     }
 
     public async Task<bool> IsProductValid(Product product)

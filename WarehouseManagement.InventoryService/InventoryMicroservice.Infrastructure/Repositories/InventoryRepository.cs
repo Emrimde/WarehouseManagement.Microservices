@@ -12,12 +12,13 @@ public class InventoryRepository : IInventoryRepository
         _dbContext = dbContext;
     }
 
-    public async Task<InventoryItem> AddEmptyInventoryItemWithSkuAsync(string sku)
+    public async Task<InventoryItem> initializeInventoryItemForProduct(string sku, string productName)
     {
         InventoryItem inventoryItem = new InventoryItem
         {
             Id = Guid.NewGuid(),                        
-            StockKeepingUnit = sku,            
+            StockKeepingUnit = sku,  
+            ProductName = productName,
             QuantityOnHand = 0,                         
             QuantityReserved = 0,                       
             UpdatedAt = DateTime.UtcNow               

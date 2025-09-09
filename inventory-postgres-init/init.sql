@@ -5,7 +5,7 @@
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.5
 
--- Started on 2025-08-16 07:23:50
+-- Started on 2025-09-06 10:41:51
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -34,7 +34,8 @@ CREATE TABLE public."InventoryItems" (
     "QuantityOnHand" integer NOT NULL,
     "QuantityReserved" integer NOT NULL,
     "UpdatedAt" timestamp with time zone NOT NULL,
-    "UnitPrice" numeric
+    "UnitPrice" numeric,
+    "ProductName" text DEFAULT ''::text NOT NULL
 );
 
 
@@ -54,18 +55,18 @@ CREATE TABLE public."__EFMigrationsHistory" (
 ALTER TABLE public."__EFMigrationsHistory" OWNER TO postgres;
 
 --
--- TOC entry 4895 (class 0 OID 16446)
+-- TOC entry 4896 (class 0 OID 16446)
 -- Dependencies: 218
 -- Data for Name: InventoryItems; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."InventoryItems" ("Id", "StockKeepingUnit", "QuantityOnHand", "QuantityReserved", "UpdatedAt", "UnitPrice") FROM stdin;
-35563352-ab62-4ebb-bfb2-cd4edcecd7c4	SONY-WH1000XM5	50	10	2025-08-07 20:02:37.329057+02	3000
+COPY public."InventoryItems" ("Id", "StockKeepingUnit", "QuantityOnHand", "QuantityReserved", "UpdatedAt", "UnitPrice", "ProductName") FROM stdin;
+35563352-ab62-4ebb-bfb2-cd4edcecd7c4	SONY-WH1000XM5	50	10	2025-08-07 20:02:37.329057+02	3000	Sony
 \.
 
 
 --
--- TOC entry 4894 (class 0 OID 16441)
+-- TOC entry 4895 (class 0 OID 16441)
 -- Dependencies: 217
 -- Data for Name: __EFMigrationsHistory; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -73,11 +74,12 @@ COPY public."InventoryItems" ("Id", "StockKeepingUnit", "QuantityOnHand", "Quant
 COPY public."__EFMigrationsHistory" ("MigrationId", "ProductVersion") FROM stdin;
 20250805093514_Init	8.0.18
 20250816051525_UnitPrice	8.0.18
+20250906083057_productName	8.0.18
 \.
 
 
 --
--- TOC entry 4748 (class 2606 OID 16452)
+-- TOC entry 4749 (class 2606 OID 16452)
 -- Name: InventoryItems PK_InventoryItems; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -86,7 +88,7 @@ ALTER TABLE ONLY public."InventoryItems"
 
 
 --
--- TOC entry 4746 (class 2606 OID 16445)
+-- TOC entry 4747 (class 2606 OID 16445)
 -- Name: __EFMigrationsHistory PK___EFMigrationsHistory; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -94,7 +96,7 @@ ALTER TABLE ONLY public."__EFMigrationsHistory"
     ADD CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId");
 
 
--- Completed on 2025-08-16 07:23:50
+-- Completed on 2025-09-06 10:41:51
 
 --
 -- PostgreSQL database dump complete

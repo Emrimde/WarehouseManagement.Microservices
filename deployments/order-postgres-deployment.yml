@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: order-postgres-deployment
   namespace: warehouse-management-namespace
+  labels:
+    app: order-postgres
 spec:
   replicas: 1
   selector:

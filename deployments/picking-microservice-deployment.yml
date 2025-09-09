@@ -3,18 +3,20 @@ kind: Deployment
 metadata:
   name: picking-microservice-deployment
   namespace: warehouse-management-namespace
+  labels: 
+    app: picking-microservice
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: picking-microservice-deployment
+      app: picking-microservice
   template:
     metadata:
       labels:
-        app: picking-microservice-deployment
+        app: picking-microservice
     spec:
       containers:
-      - name: picking-microservice-deployment
+      - name: picking-microservice
         image: warehousemanagement.azurecr.io/pickingmicroservice:latest
         env:
         - name: DB_NAME

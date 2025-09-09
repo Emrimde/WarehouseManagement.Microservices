@@ -9,8 +9,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure();
 builder.Services.AddCore();
-builder.Services.AddHttpClient<InventoryMicroserviceClient>(client => client.BaseAddress = new Uri("http://inventorymicroservice.api:8080"));
-builder.Services.AddHttpClient<ProductMicroserviceClient>(client => client.BaseAddress = new Uri("http://productmicroservice.api:8080"));
+builder.Services.AddHttpClient<InventoryMicroserviceClient>(client => client.BaseAddress = new Uri("http://inventorymicroservice-api:8080"));
+builder.Services.AddHttpClient<ProductMicroserviceClient>(client => client.BaseAddress = new Uri("http://productmicroservice-api:8080"));
 
 var app = builder.Build();
 

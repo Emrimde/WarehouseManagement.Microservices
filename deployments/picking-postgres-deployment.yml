@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: picking-postgres-deployment
   namespace: warehouse-management-namespace
+  labels: 
+    app: picking-postgres
 spec:
   replicas: 1
   selector:

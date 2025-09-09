@@ -29,7 +29,9 @@ public class ProductService : IProductService
 
         Product newProduct = await _productRepo.AddProductAsync(product.ToProduct());
 
-         _publisher.Publish("product.create", new ProductCreateMessage(newProduct.StockKeepingUnit));
+         _publisher.Publish("product.create", new ProductCreateMessage(newProduct.StockKeepingUnit, newProduct.Name));
+
+        await _cache.RemoveAsync("products:all");
 
         return Result<ProductResponse>.Success(newProduct.ToProductResponse());
     }
@@ -48,6 +50,9 @@ public class ProductService : IProductService
             return Result<ProductResponse>.Failure("The product don't exist", StatusCode.NotFound);
         }
 
+        await _cache.RemoveAsync("products:all");
+        await _cache.RemoveAsync($"products:{id}");
+
         return Result<ProductResponse>.SuccessResult("Deleted succesfully!");
     }
 
@@ -60,6 +65,7 @@ public class ProductService : IProductService
 
         string cacheKey = $"product:{id}";
         string? cachedProduct = await _cache.GetStringAsync(cacheKey);
+
         if (!string.IsNullOrEmpty(cachedProduct))
         {
             ProductResponse? productFromCache = JsonConvert.DeserializeObject<ProductResponse>(cachedProduct);
@@ -74,6 +80,7 @@ public class ProductService : IProductService
 
         string productJson = JsonConvert.SerializeObject(product.ToProductResponse());
         await _cache.SetStringAsync(cacheKey, productJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100))); 
+
         return Result<ProductResponse>.Success(product.ToProductResponse());
     }
 
@@ -117,7 +124,6 @@ public class ProductService : IProductService
         IEnumerable<Product> products = await _productRepo.GetProductsAsync(); 
         IEnumerable<ProductResponse> responseList = products.Select(item => item.ToProductResponse());
 
-       
         string productsJson = JsonConvert.SerializeObject(responseList); 
         await _cache.SetStringAsync(cacheKey, productsJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100)));
 

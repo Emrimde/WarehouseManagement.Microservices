@@ -12,11 +12,11 @@ services:
         - ASPNETCORE_ENVIRONMENT=Development
         - REDIS_HOST=redis
         - REDIS_PORT=6379
-        - RabbitMQ_HOSTNAME=rabbitmqq
-        - RabbitMQ_USERNAME=user
-        - RabbitMQ_PASSWORD=admin
-        - RabbitMQ_PORT=5672
-        - RabbitMQ_ProductExchange=product.exchange
+        - RABBITMQ_HOSTNAME=rabbitmqq
+        - RABBITMQ_USERNAME=user
+        - RABBITMQ_PASSWORD=admin
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_ProductExchange=product.exchange
     ports:
         - 5049:8080
         - 7112:8081
@@ -98,7 +98,7 @@ services:
     ports:
         - 5432:5432
     volumes:
-        - ./postgres-init:/docker-entrypoint-initdb.d
+        - ../product-postgres-init:/docker-entrypoint-initdb.d
     networks:
         - product-postgres-network
     environment:

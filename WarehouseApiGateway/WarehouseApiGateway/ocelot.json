@@ -6,7 +6,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "productmicroservice.api",
+          "Host": "productmicroservice-api",
           "Port": 8080
         }
       ],
@@ -27,7 +27,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "productmicroservice.api",
+          "Host": "productmicroservice-api",
           "Port": 8080
         }
       ],
@@ -48,7 +48,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "productmicroservice.api",
+          "Host": "productmicroservice-api",
           "Port": 8080
         }
       ],
@@ -70,7 +70,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "pickingmicroservice.api",
+          "Host": "pickingmicroservice-api",
           "Port": 8080
         }
       ],
@@ -91,7 +91,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "pickingmicroservice.api",
+          "Host": "pickingmicroservice-api",
           "Port": 8080
         }
       ],
@@ -113,7 +113,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "inventorymicroservice.api",
+          "Host": "inventorymicroservice-api",
           "Port": 8080
         }
       ],
@@ -134,7 +134,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "inventorymicroservice.api",
+          "Host": "inventorymicroservice-api",
           "Port": 8080
         }
       ],
@@ -155,7 +155,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "inventorymicroservice.api",
+          "Host": "inventorymicroservice-api",
           "Port": 8080
         }
       ],
@@ -177,7 +177,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "ordermicroservice.api",
+          "Host": "ordermicroservice-api",
           "Port": 8080
         }
       ],
@@ -198,7 +198,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "ordermicroservice.api",
+          "Host": "ordermicroservice-api",
           "Port": 8080
         }
       ],
@@ -219,7 +219,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "ordermicroservice.api",
+          "Host": "ordermicroservice-api",
           "Port": 8080
         }
       ],

@@ -12,7 +12,10 @@ public static class ProductMapper
              product.Name,
              product.Description,
              product.StockKeepingUnit,
-             product.CategoryId
+             product.Category!.Name,
+             product.CategoryId,
+             product.Manufacturer,
+             product.CreatedAt
         );
     }
 

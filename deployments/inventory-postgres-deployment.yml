@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: inventory-postgres-deployment
   namespace: warehouse-management-namespace
+  labels:
+    app: inventory-postgres
 spec:
   replicas: 1
   selector:

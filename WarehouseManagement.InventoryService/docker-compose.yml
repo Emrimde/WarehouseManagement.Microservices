@@ -1,9 +1,6 @@
 services:
   ordermicroservice.api:
-    image: kkrzysztofapplications/ordermicroservice:latest
-    # build:
-    #   context: .
-    #   dockerfile: OrderMicroservice.API/Dockerfile
+    image: ordermicroservice:latest
     ports:
         - 4001:8080
         - 4002:8081
@@ -25,10 +22,10 @@ services:
         - REDIS_HOST=redis
         - REDIS_PORT=6379
       
-  productmicroservice.api:
-    image: kkrzysztofapplications/productmicroservice:latest
+  productmicroservice-api:
+    image: productmicroservice:latest
     ports:
-      - 6001:8080
+      - 5049:8080
       - 6002:8081
     environment:
         - HOST=product-db
@@ -47,7 +44,7 @@ services:
         - product-postgres-network
         - warehouse-network
 
-  inventorymicroservice.api:
+  inventorymicroservice-api:
     image: inventorymicroservice
     build:
         context: .
@@ -75,8 +72,8 @@ services:
         - inventory-postgres-network
         - warehouse-network
 
-  pickingmicroservice.api:
-    image: pickingmicroservice.api:v1.2
+  pickingmicroservice-api:
+    image: pickingmicroservice:latest
     ports:
         - 8000:8080
         - 8001:8081
