@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ProductService.Core.DTO;
+namespace ProductMicroservice.Core.DTO;
 public class ProductAddRequest
 {
     [Required]

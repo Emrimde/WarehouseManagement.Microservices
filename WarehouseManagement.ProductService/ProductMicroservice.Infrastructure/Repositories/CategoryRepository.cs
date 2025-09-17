@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductService.Core.Domain.Entities;
-using ProductService.Infrastructure.DatabaseContext;
+using ProductMicroservice.Core.Domain.Entities;
+using ProductMicroservice.Infrastructure.DatabaseContext;
 
 namespace ProductMicroservice.Infrastructure.Repositories
 {
-    public class CategoryRepository
+    public class CategoryRepository : ICategoryRepository
     {
         private readonly ApplicationDbContext _dbcontext;
         public CategoryRepository(ApplicationDbContext context)
@@ -31,7 +31,7 @@ namespace ProductMicroservice.Infrastructure.Repositories
         public async Task<bool> DeleteCategoryAsync(Guid id)
         {
             Category? category = await GetCategoryByIdAsync(id);
-            if(category == null)
+            if (category == null)
             {
                 return false;
             }
@@ -40,9 +40,9 @@ namespace ProductMicroservice.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> UpdateCategory(Guid id, Category category)
+        public async Task<bool> UpdateCategory(Category category)
         {
-            Category? existingCategory = await GetCategoryByIdAsync(id);
+            Category? existingCategory = await GetCategoryByIdAsync(category.Id);
 
             if (existingCategory == null)
             {
@@ -53,6 +53,16 @@ namespace ProductMicroservice.Infrastructure.Repositories
             await _dbcontext.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<IEnumerable<Product>> GetRelatedProductsWithCategoryId(Guid id)
+        {
+            Category? category = await _dbcontext.Categories
+                                           .AsNoTracking()
+                                           .Include(c => c.Products)
+                                           .FirstOrDefaultAsync(c => c.Id == id);
+
+            return category?.Products ?? Enumerable.Empty<Product>();
         }
     }
 }

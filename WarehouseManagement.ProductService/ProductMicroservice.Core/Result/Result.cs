@@ -1,4 +1,4 @@
-﻿namespace ProductService.Core.Result;
+﻿namespace ProductMicroservice.Core.Result;
 
 public enum StatusCode
 {

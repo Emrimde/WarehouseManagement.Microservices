@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductService.Core.Domain.Entities;
-using ProductService.Core.RepositoryContracts;
-using ProductService.Infrastructure.DatabaseContext;
+using ProductMicroservice.Core.Domain.Entities;
+using ProductMicroservice.Core.DTO;
+using ProductMicroservice.Core.Mappers;
+using ProductMicroservice.Core.RepositoryContracts;
+using ProductMicroservice.Infrastructure.DatabaseContext;
 
-namespace ProductService.Infrastructure.Repositories;
+namespace ProductMicroservice.Infrastructure.Repositories;
 public class ProductRepository : IProductRepository
 {
     private readonly ApplicationDbContext _dbContext;
@@ -34,6 +36,11 @@ public class ProductRepository : IProductRepository
         return true;
     }
 
+    public async Task<int> GetActiveProductsCountAsync(CancellationToken cancellationToken)
+    {
+        return await _dbContext.Products.Where(item => item.IsActive).CountAsync(cancellationToken);
+    }
+
     public async Task<Product?> GetProductByIdAsync(Guid id)
     {
         return await _dbContext.Products.Include(item => item.Category).FirstOrDefaultAsync(item => item.Id == id);
@@ -46,7 +53,20 @@ public class ProductRepository : IProductRepository
 
     public async Task<IEnumerable<Product>> GetProductsAsync()
     {
-        return await _dbContext.Products.Include(item => item.Category).Where(item => item.IsActive == true).ToListAsync();
+        return await _dbContext.Products.Include(item => item.Category).AsNoTracking().Where(item => item.IsActive == true).ToListAsync();
+    }
+
+    public async Task<IEnumerable<Product>> GetProductsPageProjectedAsync(int page, int pageSize, CancellationToken cancellationToken)
+    {
+        int offset = (page - 1) * pageSize;
+        return await _dbContext.Products
+            .Include(item => item.Category)
+            .AsNoTracking()
+            .Where(product => product.IsActive)
+            .OrderBy(item => item.Id)
+            .Skip(offset)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<bool> IsProductValid(Product product)

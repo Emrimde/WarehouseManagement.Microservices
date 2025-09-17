@@ -1,7 +1,7 @@
-﻿using ProductService.Core.Domain.Entities;
-using ProductService.Core.DTO;
+﻿using ProductMicroservice.Core.Domain.Entities;
+using ProductMicroservice.Core.DTO;
 
-namespace ProductService.Core.Mappers;
+namespace ProductMicroservice.Core.Mappers;
 public static class ProductMapper
 {
     public static ProductResponse ToProductResponse(this Product product)

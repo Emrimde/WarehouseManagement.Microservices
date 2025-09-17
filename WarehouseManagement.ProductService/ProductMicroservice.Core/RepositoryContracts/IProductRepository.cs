@@ -1,6 +1,7 @@
-﻿using ProductService.Core.Domain.Entities;
+﻿using ProductMicroservice.Core.Domain.Entities;
+using ProductMicroservice.Core.DTO;
 
-namespace ProductService.Core.RepositoryContracts;
+namespace ProductMicroservice.Core.RepositoryContracts;
 public interface IProductRepository
 {
     Task<IEnumerable<Product>> GetProductsAsync();
@@ -10,4 +11,6 @@ public interface IProductRepository
     Task<Product?> GetProductBySkuAsync(string sku);
     Task<bool> IsProductValid(Product product);
     Task<bool> DeleteProduct(Guid id);
+    Task<IEnumerable<Product>> GetProductsPageProjectedAsync(int page, int pageSize, CancellationToken cancellationToken);
+    Task<int> GetActiveProductsCountAsync(CancellationToken cancellationToken);
 }

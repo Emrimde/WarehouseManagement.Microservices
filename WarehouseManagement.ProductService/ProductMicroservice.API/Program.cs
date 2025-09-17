@@ -1,5 +1,5 @@
-using ProductService.Core;
-using ProductService.Infrastructure;
+using ProductMicroservice.Core;
+using ProductMicroservice.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductService.Core.Domain.Entities;
+using ProductMicroservice.Core.Domain.Entities;
 
-namespace ProductService.Infrastructure.DatabaseContext;
+namespace ProductMicroservice.Infrastructure.DatabaseContext;
 public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options): base(options) { }

@@ -1,16 +1,16 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using ProductService.Core.RabbitMQ;
-using ProductService.Core.ServiceContracts;
+using ProductMicroservice.Core.RabbitMQ;
+using ProductMicroservice.Core.ServiceContracts;
+using ProductMicroservice.Core.Services;
 
-namespace ProductService.Core
+namespace ProductMicroservice.Core;
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static IServiceCollection AddCore(this IServiceCollection services)
     {
-        public static IServiceCollection AddCore(this IServiceCollection services)
-        {
-            services.AddScoped<IProductService, ProductService.Core.Services.ProductService>();
-            services.AddTransient<IRabbitMQPublisher, RabbitMQPublisher>();
-            return services;
-        }
+        _ = services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddTransient<IRabbitMQPublisher, RabbitMQPublisher>();
+        return services;
     }
 }

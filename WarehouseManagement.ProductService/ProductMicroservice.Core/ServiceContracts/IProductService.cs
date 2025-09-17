@@ -1,7 +1,7 @@
-﻿using ProductService.Core.DTO;
-using ProductService.Core.Result;
+﻿using ProductMicroservice.Core.DTO;
+using ProductMicroservice.Core.Result;
 
-namespace ProductService.Core.ServiceContracts;
+namespace ProductMicroservice.Core.ServiceContracts;
 public interface IProductService
 {
     Task<IEnumerable<ProductResponse>> GetProductsAsync();
@@ -10,4 +10,5 @@ public interface IProductService
     Task<Result<ProductUpdateRequest>> UpdateProductAsync(ProductUpdateRequest product, Guid id);
     Task<Result<ProductResponse>> AddProductAsync(ProductAddRequest product);
     Task<Result<ProductResponse>> DeleteProduct(Guid id);
+    Task<PagedResult<ProductResponse>> GetProductsPagedAsync(int page, int pageSize, CancellationToken cancellationToken);
 }

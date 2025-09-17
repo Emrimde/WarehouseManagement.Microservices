@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ProductService.Core.RepositoryContracts;
-using ProductService.Infrastructure.DatabaseContext;
-using ProductService.Infrastructure.Repositories;
+using ProductMicroservice.Core.RepositoryContracts;
+using ProductMicroservice.Infrastructure.DatabaseContext;
+using ProductMicroservice.Infrastructure.Repositories;
 
-namespace ProductService.Infrastructure;
+namespace ProductMicroservice.Infrastructure;
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
@@ -21,6 +21,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString);
         });
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
         return services;
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ProductService.Core.RabbitMQ;
+﻿namespace ProductMicroservice.Core.RabbitMQ;
 public interface IRabbitMQPublisher
 {
     void Publish<T>(string routingKey, T message);

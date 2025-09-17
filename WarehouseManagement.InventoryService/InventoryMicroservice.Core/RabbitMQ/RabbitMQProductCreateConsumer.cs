@@ -90,7 +90,7 @@ public class RabbitMQProductCreateConsumer : IDisposable, IRabbitMQProductCreate
                     using IServiceScope? scope = _scopeFactory.CreateScope();
                     IInventoryRepository repo = scope.ServiceProvider.GetRequiredService<IInventoryRepository>();
 
-                    await repo.initializeInventoryItemForProduct(product!.Sku, product.ProductName); // After getting a message from product microservice i wanted to create an inventory item.
+                    await repo.initializeInventoryItemForProduct(product!.Sku, product.Name); // After getting a message from product microservice i wanted to create an inventory item.
                 }
                 catch (Exception ex)
                 {

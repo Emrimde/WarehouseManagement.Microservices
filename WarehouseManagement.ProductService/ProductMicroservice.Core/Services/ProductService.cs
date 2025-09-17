@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
-using ProductService.Core.Domain.Entities;
-using ProductService.Core.DTO;
-using ProductService.Core.Mappers;
-using ProductService.Core.RabbitMQ;
-using ProductService.Core.RepositoryContracts;
-using ProductService.Core.Result;
-using ProductService.Core.ServiceContracts;
+using ProductMicroservice.Core.Domain.Entities;
+using ProductMicroservice.Core.DTO;
+using ProductMicroservice.Core.Mappers;
+using ProductMicroservice.Core.RabbitMQ;
+using ProductMicroservice.Core.RepositoryContracts;
+using ProductMicroservice.Core.Result;
+using ProductMicroservice.Core.ServiceContracts;
 
-namespace ProductService.Core.Services;
+namespace ProductMicroservice.Core.Services;
 public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepo;
@@ -130,11 +130,26 @@ public class ProductService : IProductService
         return responseList;
     }
 
+    public async Task<PagedResult<ProductResponse>> GetProductsPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        IEnumerable<Product> items = await _productRepo.GetProductsPageProjectedAsync(page, pageSize, cancellationToken);
+
+        int total = await _productRepo.GetActiveProductsCountAsync(cancellationToken);
+
+        return new PagedResult<ProductResponse>
+        {
+            Items = items.Select(item => item.ToProductResponse()),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = total
+        };
+    }
+
     public async Task<Result<ProductUpdateRequest>> UpdateProductAsync(ProductUpdateRequest product, Guid id)
     {
         if(product.Id != id)
         {
-            return Result<ProductUpdateRequest>.Failure("Error: Id of the product is not equal to id", StatusCode.BadRequest);
+            return Result<ProductUpdateRequest>.Failure("Error: Id of the product is not equal to id in query", StatusCode.BadRequest);
         }
 
         bool isModified = await _productRepo.UpdateProductAsync(product.ToProduct(), id);

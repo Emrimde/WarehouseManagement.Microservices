@@ -1,2 +1,2 @@
 ﻿namespace InventoryMicroservice.Core.RabbitMQ;
-public record ProductCreateMessage(string Sku, string ProductName);
+public record ProductCreateMessage(string Sku, string Name);

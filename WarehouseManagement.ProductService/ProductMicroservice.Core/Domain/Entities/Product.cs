@@ -1,4 +1,4 @@
-﻿namespace ProductService.Core.Domain.Entities;
+﻿namespace ProductMicroservice.Core.Domain.Entities;
 public class Product
 {
     public Guid Id { get; set; }

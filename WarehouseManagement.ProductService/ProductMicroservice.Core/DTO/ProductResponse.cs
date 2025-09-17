@@ -1,4 +1,4 @@
-﻿namespace ProductService.Core.DTO;
+﻿namespace ProductMicroservice.Core.DTO;
 public record ProductResponse
 (
     Guid Id,

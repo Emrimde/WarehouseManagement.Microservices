@@ -2,7 +2,7 @@
 using RabbitMQ.Client;
 using System.Text;
 
-namespace ProductService.Core.RabbitMQ;
+namespace ProductMicroservice.Core.RabbitMQ;
 public class RabbitMQPublisher : IRabbitMQPublisher, IDisposable
 {
     private readonly IModel _channel;

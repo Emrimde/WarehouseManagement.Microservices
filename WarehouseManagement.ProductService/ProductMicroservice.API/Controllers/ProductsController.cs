@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProductService.Core.DTO;
-using ProductService.Core.Result;
-using ProductService.Core.ServiceContracts;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using ProductMicroservice.Core.DTO;
+using ProductMicroservice.Core.Result;
+using ProductMicroservice.Core.ServiceContracts;
 
-namespace ProductService.API.Controllers;
+namespace ProductMicroservice.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -18,11 +19,28 @@ public class ProductsController : ControllerBase
 
     // GET: api/Products
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductResponse>>> GetProducts()
+    public async Task<ActionResult<IEnumerable<ProductResponse>>> GetAllProducts()
     {
         IEnumerable<ProductResponse> products = await _productService.GetProductsAsync();
         return Ok(products);
     }
+
+    // GET: api/Products?page=1&pageSize=10
+    [HttpGet("paged")]
+    [ProducesResponseType(typeof(PagedResult<ProductResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<ProductResponse>>> GetProducts([FromQuery] int page = 1,[FromQuery] int pageSize = 10,CancellationToken cancellationToken = default)
+    {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 30); // limit do 100
+
+        PagedResult<ProductResponse> paged = await _productService.GetProductsPagedAsync(page, pageSize, cancellationToken);
+
+        if (paged.TotalCount.HasValue)
+            Response.Headers["X-Total-Count"] = paged.TotalCount.Value.ToString();
+
+        return Ok(paged);
+    }
+
 
     // GET: api/Products/5
     [HttpGet("{id}")]
