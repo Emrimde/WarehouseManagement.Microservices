@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
-using Newtonsoft.Json;
 using ProductMicroservice.Core.Domain.Entities;
+using ProductMicroservice.Core.Domain.RepositoryContracts;
 using ProductMicroservice.Core.DTO;
 using ProductMicroservice.Core.Mappers;
 using ProductMicroservice.Core.RabbitMQ;
-using ProductMicroservice.Core.RepositoryContracts;
 using ProductMicroservice.Core.Result;
 using ProductMicroservice.Core.ServiceContracts;
+using System.Text.Json;
+
 
 namespace ProductMicroservice.Core.Services;
 public class ProductService : IProductService
@@ -36,14 +37,14 @@ public class ProductService : IProductService
         return Result<ProductResponse>.Success(newProduct.ToProductResponse());
     }
 
-    public async Task<Result<ProductResponse>> DeleteProduct(Guid id)
+    public async Task<Result<ProductResponse>> DeleteProduct(Guid id, CancellationToken cancellationToken)
     {
         if(id == Guid.Empty)
         {
             return Result<ProductResponse>.Failure("Invalid id", StatusCode.BadRequest);
         }
 
-        bool isDeleted = await _productRepo.DeleteProduct(id);
+        bool isDeleted = await _productRepo.DeleteProduct(id, cancellationToken);
 
         if (!isDeleted) 
         {
@@ -56,30 +57,25 @@ public class ProductService : IProductService
         return Result<ProductResponse>.SuccessResult("Deleted succesfully!");
     }
 
-    public async Task<Result<ProductResponse>> GetProductByIdAsync(Guid id)
+    public async Task<Result<ProductResponse>> GetProductByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return Result<ProductResponse>.Failure("Incorrect id", StatusCode.BadRequest);
-        }
-
         string cacheKey = $"product:{id}";
-        string? cachedProduct = await _cache.GetStringAsync(cacheKey);
+        byte[]? cachedProduct = await _cache.GetAsync(cacheKey, cancellationToken);
 
-        if (!string.IsNullOrEmpty(cachedProduct))
+        if (cachedProduct != null)
         {
-            ProductResponse? productFromCache = JsonConvert.DeserializeObject<ProductResponse>(cachedProduct);
+            ProductResponse? productFromCache = JsonSerializer.Deserialize<ProductResponse>(cachedProduct);
             return Result<ProductResponse>.Success(productFromCache!);
         }
 
-        Product? product = await _productRepo.GetProductByIdAsync(id);
+        Product? product = await _productRepo.GetProductByIdAsync(id, cancellationToken);
         if (product == null)
         {
             return Result<ProductResponse>.Failure("Product not found", StatusCode.NotFound);
         }
 
-        string productJson = JsonConvert.SerializeObject(product.ToProductResponse());
-        await _cache.SetStringAsync(cacheKey, productJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100))); 
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(product.ToProductResponse());
+        await _cache.SetAsync(cacheKey, bytes, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100)), cancellationToken); 
 
         return Result<ProductResponse>.Success(product.ToProductResponse());
     }
@@ -95,7 +91,7 @@ public class ProductService : IProductService
         string? cachedProduct = await _cache.GetStringAsync(cacheKey);
         if (!string.IsNullOrEmpty(cachedProduct))
         {
-            ProductResponse? productFromCache = JsonConvert.DeserializeObject<ProductResponse>(cachedProduct);
+            ProductResponse? productFromCache = JsonSerializer.Deserialize<ProductResponse>(cachedProduct);
             return Result<ProductResponse>.Success(productFromCache!);
         }
 
@@ -105,7 +101,7 @@ public class ProductService : IProductService
             return Result<ProductResponse>.Failure("Product not found", StatusCode.NotFound);
         }
 
-        string productJson = JsonConvert.SerializeObject(product.ToProductResponse());
+        string productJson = JsonSerializer.Serialize(product.ToProductResponse());
         await _cache.SetStringAsync(cacheKey, productJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100)));
         return Result<ProductResponse>.Success(product.ToProductResponse());
     }
@@ -117,14 +113,14 @@ public class ProductService : IProductService
 
         if (!string.IsNullOrEmpty(cachedProducts))
         {
-            IEnumerable<ProductResponse>? productsFromCache = JsonConvert.DeserializeObject<IEnumerable<ProductResponse>>(cachedProducts); 
+            IEnumerable<ProductResponse>? productsFromCache = JsonSerializer.Deserialize<IEnumerable<ProductResponse>>(cachedProducts); 
             return productsFromCache!;
         }
         
         IEnumerable<Product> products = await _productRepo.GetProductsAsync(); 
         IEnumerable<ProductResponse> responseList = products.Select(item => item.ToProductResponse());
 
-        string productsJson = JsonConvert.SerializeObject(responseList); 
+        string productsJson = JsonSerializer.Serialize(responseList); 
         await _cache.SetStringAsync(cacheKey, productsJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100)));
 
         return responseList;
@@ -145,14 +141,14 @@ public class ProductService : IProductService
         };
     }
 
-    public async Task<Result<ProductUpdateRequest>> UpdateProductAsync(ProductUpdateRequest product, Guid id)
+    public async Task<Result<ProductUpdateRequest>> UpdateProductAsync(ProductUpdateRequest product, Guid id, CancellationToken cancellationToken)
     {
         if(product.Id != id)
         {
             return Result<ProductUpdateRequest>.Failure("Error: Id of the product is not equal to id in query", StatusCode.BadRequest);
         }
 
-        bool isModified = await _productRepo.UpdateProductAsync(product.ToProduct(), id);
+        bool isModified = await _productRepo.UpdateProductAsync(product.ToProduct(), id, cancellationToken);
 
         if (!isModified)
         {

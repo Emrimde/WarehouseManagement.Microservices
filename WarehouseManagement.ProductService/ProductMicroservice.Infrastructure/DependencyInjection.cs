@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ProductMicroservice.Core.RepositoryContracts;
+using ProductMicroservice.Core.Domain.RepositoryContracts;
 using ProductMicroservice.Infrastructure.DatabaseContext;
 using ProductMicroservice.Infrastructure.Repositories;
 

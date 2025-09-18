@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductMicroservice.Core.Domain.Entities;
+using ProductMicroservice.Core.Domain.RepositoryContracts;
 using ProductMicroservice.Core.DTO;
 using ProductMicroservice.Core.Mappers;
-using ProductMicroservice.Core.RepositoryContracts;
 using ProductMicroservice.Infrastructure.DatabaseContext;
 
 namespace ProductMicroservice.Infrastructure.Repositories;
@@ -24,9 +24,9 @@ public class ProductRepository : IProductRepository
         return product;
     }
 
-    public async Task<bool> DeleteProduct(Guid id)
+    public async Task<bool> DeleteProduct(Guid id, CancellationToken cancellationToken)
     {
-        Product? product = await GetProductByIdAsync(id);
+        Product? product = await GetProductByIdAsync(id, cancellationToken);
         if (product == null) {
             return false;
         }
@@ -41,9 +41,12 @@ public class ProductRepository : IProductRepository
         return await _dbContext.Products.Where(item => item.IsActive).CountAsync(cancellationToken);
     }
 
-    public async Task<Product?> GetProductByIdAsync(Guid id)
+    public async Task<Product?> GetProductByIdAsync(Guid id,CancellationToken cancellationToken)
     {
-        return await _dbContext.Products.Include(item => item.Category).FirstOrDefaultAsync(item => item.Id == id);
+        return await _dbContext.Products
+            .AsNoTracking()
+            .Include(item => item.Category)
+            .FirstOrDefaultAsync(item => item.Id == id);
     }
 
     public async Task<Product?> GetProductBySkuAsync(string sku)
@@ -78,9 +81,9 @@ public class ProductRepository : IProductRepository
         return true;
     }
 
-    public async Task<bool> UpdateProductAsync(Product product, Guid id)
+    public async Task<bool> UpdateProductAsync(Product product, Guid id, CancellationToken cancellationToken)
     {
-        Product? existingProduct = await GetProductByIdAsync(id);
+        Product? existingProduct = await GetProductByIdAsync(id,cancellationToken);
 
         if (existingProduct == null)
         {

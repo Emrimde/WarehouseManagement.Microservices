@@ -28,15 +28,17 @@ public class ProductsController : ControllerBase
     // GET: api/Products?page=1&pageSize=10
     [HttpGet("paged")]
     [ProducesResponseType(typeof(PagedResult<ProductResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PagedResult<ProductResponse>>> GetProducts([FromQuery] int page = 1,[FromQuery] int pageSize = 10,CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PagedResult<ProductResponse>>> GetProducts([FromQuery] int page = 1,[FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
         page = Math.Max(1, page);
-        pageSize = Math.Clamp(pageSize, 1, 30); // limit do 100
+        pageSize = Math.Clamp(pageSize, 1, 30); 
 
         PagedResult<ProductResponse> paged = await _productService.GetProductsPagedAsync(page, pageSize, cancellationToken);
 
         if (paged.TotalCount.HasValue)
+        {
             Response.Headers["X-Total-Count"] = paged.TotalCount.Value.ToString();
+        }
 
         return Ok(paged);
     }
@@ -44,13 +46,22 @@ public class ProductsController : ControllerBase
 
     // GET: api/Products/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<ProductResponse>> GetProductById(Guid id)
+    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProductResponse>> Get(Guid id, CancellationToken cancellationToken)
     { 
-        Result<ProductResponse> result = await _productService.GetProductByIdAsync(id);
-        if (result.IsSuccess == false)
+        if(id == Guid.Empty)
+        {
+            return BadRequest();
+        }
+
+        Result<ProductResponse> result = await _productService.GetProductByIdAsync(id, cancellationToken);
+        if (!result.IsSuccess)
         {
             return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
         }
+
         return Ok(result.Value!);
     }
 
@@ -68,9 +79,9 @@ public class ProductsController : ControllerBase
 
     // PUT: api/Products/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutProduct(Guid id, ProductUpdateRequest product)
+    public async Task<IActionResult> PutProduct(Guid id, ProductUpdateRequest product, CancellationToken cancellationToken)
     {
-        Result<ProductUpdateRequest> result = await _productService.UpdateProductAsync(product, id);
+        Result<ProductUpdateRequest> result = await _productService.UpdateProductAsync(product, id, cancellationToken);
         if (!result.IsSuccess)
         {
             return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
@@ -94,9 +105,9 @@ public class ProductsController : ControllerBase
 
     // DELETE: api/Products/5
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteProduct(Guid id)
+    public async Task<IActionResult> DeleteProduct(Guid id, CancellationToken cancellationToken)
     {
-        Result<ProductResponse> result = await _productService.DeleteProduct(id);
+        Result<ProductResponse> result = await _productService.DeleteProduct(id,cancellationToken);
         if (!result.IsSuccess)
         {
             return Problem(detail: result.Message,statusCode: (int)result.StatusCode);
