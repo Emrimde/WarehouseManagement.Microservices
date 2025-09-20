@@ -1,4 +1,4 @@
-﻿namespace ProductMicroservice.Core.Result;
+﻿namespace ProductMicroservice.Core.Results;
 
 public class PagedResult<T>
 {

@@ -1,5 +1,5 @@
 ﻿using ProductMicroservice.Core.DTO;
-using ProductMicroservice.Core.Result;
+using ProductMicroservice.Core.Results;
 
 namespace ProductMicroservice.Core.ServiceContracts
 {

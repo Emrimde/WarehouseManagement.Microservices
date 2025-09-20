@@ -23,7 +23,6 @@ public static class ProductMapper
     {
         return new Product()
         {
-            Id = product.Id,
             Name = product.Name,
             Description = product.Description,
         };

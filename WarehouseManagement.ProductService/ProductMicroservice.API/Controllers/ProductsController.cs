@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using ProductMicroservice.Core.DTO;
-using ProductMicroservice.Core.Result;
+using ProductMicroservice.Core.Results;
 using ProductMicroservice.Core.ServiceContracts;
 
 namespace ProductMicroservice.API.Controllers;
@@ -17,18 +16,10 @@ public class ProductsController : ControllerBase
         _productService = productService;
     }
 
-    // GET: api/Products
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductResponse>>> GetAllProducts()
-    {
-        IEnumerable<ProductResponse> products = await _productService.GetProductsAsync();
-        return Ok(products);
-    }
-
     // GET: api/Products?page=1&pageSize=10
     [HttpGet("paged")]
     [ProducesResponseType(typeof(PagedResult<ProductResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PagedResult<ProductResponse>>> GetProducts([FromQuery] int page = 1,[FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PagedResult<ProductResponse>>> GetProducts(CancellationToken cancellationToken, [FromQuery] int page = 1,[FromQuery] int pageSize = 10)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 30); 
@@ -78,10 +69,13 @@ public class ProductsController : ControllerBase
     }
 
     // PUT: api/Products/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutProduct(Guid id, ProductUpdateRequest product, CancellationToken cancellationToken)
+
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPatch("{id:guid}")]
+    public async Task<IActionResult> UpdateProduct([FromRoute] Guid id, [FromBody] ProductUpdateRequest product, CancellationToken cancellationToken)
     {
-        Result<ProductUpdateRequest> result = await _productService.UpdateProductAsync(product, id, cancellationToken);
+        Result result = await _productService.UpdateProductAsync(product, id, cancellationToken);
         if (!result.IsSuccess)
         {
             return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
@@ -90,24 +84,32 @@ public class ProductsController : ControllerBase
     }
 
     // POST: api/Products
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [HttpPost]
-    public async Task<ActionResult<ProductResponse>> PostProduct([FromBody] ProductAddRequest product)
+    public async Task<ActionResult<ProductResponse>> PostProduct([FromBody] ProductAddRequest product, CancellationToken cancellationToken)
     {
-        Result<ProductResponse> result = await _productService.AddProductAsync(product);
+        Result<ProductResponse> result = await _productService.AddProductAsync(product, cancellationToken);
 
         if (!result.IsSuccess)
         {
             return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
         }
 
-        return CreatedAtAction("GetProductById", new { id = result.Value!.Id }, result.Value);
+        return CreatedAtAction(nameof(Get), new { id = result.Value!.Id }, result.Value);
     }
 
     // DELETE: api/Products/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteProduct(Guid id, CancellationToken cancellationToken)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [HttpDelete("{id:guid}")]
+
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        Result<ProductResponse> result = await _productService.DeleteProduct(id,cancellationToken);
+        Result result = await _productService.DeleteProduct(id,cancellationToken);
         if (!result.IsSuccess)
         {
             return Problem(detail: result.Message,statusCode: (int)result.StatusCode);

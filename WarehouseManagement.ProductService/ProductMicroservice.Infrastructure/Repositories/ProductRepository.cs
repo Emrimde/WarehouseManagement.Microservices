@@ -14,24 +14,32 @@ public class ProductRepository : IProductRepository
         _dbContext = dbContext;
     }
 
-    public async Task<Product> AddProductAsync(Product product)
+    public async Task<Product> AddProductAsync(Product product, CancellationToken cancellationToken)
     {
         product.IsActive = true;
         product.CreatedAt = DateTime.UtcNow; 
         _dbContext.Products.Add(product);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         return product;
     }
 
     public async Task<bool> DeleteProduct(Guid id, CancellationToken cancellationToken)
     {
-        Product? product = await GetProductByIdAsync(id, cancellationToken);
+        Product? product = await _dbContext.Products.FindAsync(id, cancellationToken);
         if (product == null) {
             return false;
         }
+
+        if (!product.IsActive)
+        {
+            return true;
+        }
+
         product.IsActive = false;
-        await _dbContext.SaveChangesAsync();
+        product.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         return true;
     }
@@ -46,17 +54,12 @@ public class ProductRepository : IProductRepository
         return await _dbContext.Products
             .AsNoTracking()
             .Include(item => item.Category)
-            .FirstOrDefaultAsync(item => item.Id == id);
+            .FirstOrDefaultAsync(item => item.Id == id && item.IsActive == false);
     }
 
     public async Task<Product?> GetProductBySkuAsync(string sku)
     {
         return await _dbContext.Products.FirstOrDefaultAsync(item => item.StockKeepingUnit == sku);
-    }
-
-    public async Task<IEnumerable<Product>> GetProductsAsync()
-    {
-        return await _dbContext.Products.Include(item => item.Category).AsNoTracking().Where(item => item.IsActive == true).ToListAsync();
     }
 
     public async Task<IEnumerable<Product>> GetProductsPageProjectedAsync(int page, int pageSize, CancellationToken cancellationToken)
@@ -71,19 +74,32 @@ public class ProductRepository : IProductRepository
             .Take(pageSize)
             .ToListAsync(cancellationToken);
     }
-
-    public async Task<bool> IsProductValid(Product product)
+    public async Task<bool> IsCategoryExistsAsync(Guid categoryId, CancellationToken cancellationToken)
     {
-        Category? category = await _dbContext.Categories.FindAsync(product.CategoryId);
-        if (await _dbContext.Products.AnyAsync(item => item.Name == product.Name || item.Description == product.Description || item.StockKeepingUnit == product.StockKeepingUnit) || category == null){
+        return await _dbContext.Categories.AnyAsync(item => item.Id == categoryId, cancellationToken);
+    }
+    public async Task<bool> IsSkuExistsAsync(string sku, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(sku))
+        {
             return false;
         }
-        return true;
+        return await _dbContext.Products.AnyAsync(item => item.StockKeepingUnit == sku, cancellationToken);
     }
 
+    public async Task<bool> ExistsByNameInCategoryAsync(string name, Guid categoryId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return false;
+        }
+        string normName = name.Trim();
+        return await _dbContext.Products.AnyAsync(item => item.CategoryId == categoryId && item.Name == normName, cancellationToken);
+    }
     public async Task<bool> UpdateProductAsync(Product product, Guid id, CancellationToken cancellationToken)
     {
-        Product? existingProduct = await GetProductByIdAsync(id,cancellationToken);
+        Product? existingProduct = await _dbContext.Products
+    .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
         if (existingProduct == null)
         {
@@ -93,7 +109,7 @@ public class ProductRepository : IProductRepository
         existingProduct.Description = product.Description;
         existingProduct.Name = product.Name;
         existingProduct.UpdatedAt = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         return true; 
     }

@@ -1,7 +1,8 @@
 ﻿using ProductMicroservice.Core.Domain.Entities;
 using ProductMicroservice.Core.DTO;
+using ProductMicroservice.Core.Enums;
 using ProductMicroservice.Core.Mappers;
-using ProductMicroservice.Core.Result;
+using ProductMicroservice.Core.Results;
 using ProductMicroservice.Core.ServiceContracts;
 using ProductMicroservice.Infrastructure.Repositories;
 
@@ -24,7 +25,7 @@ public class CategoryService : ICategoryService
         Category? category = await _categoryRepo.GetCategoryByIdAsync(id);
         if (category == null)
         {
-            return Result<CategoryResponse>.Failure("Category is not found", StatusCode.NotFound);
+            return Result<CategoryResponse>.Failure("Category is not found", StatusCodeEnum.NotFound);
         }
         return Result<CategoryResponse>.Success(category.ToCategoryResponse());
     }
@@ -35,7 +36,7 @@ public class CategoryService : ICategoryService
         Category? addedCategory = await _categoryRepo.AddCategoryAsync(category);
         if (addedCategory == null)
         {
-            return Result<CategoryResponse>.Failure("Category not added", StatusCode.NotFound);
+            return Result<CategoryResponse>.Failure("Category not added", StatusCodeEnum.NotFound);
         }
         return Result<CategoryResponse>.Success(category.ToCategoryResponse());
     }
@@ -46,7 +47,7 @@ public class CategoryService : ICategoryService
         bool isDeleted = await _categoryRepo.DeleteCategoryAsync(id);
         if (!isDeleted)
         {
-            return Result<bool>.Failure("Category not deleted", StatusCode.BadRequest);
+            return Result<bool>.Failure("Category not deleted", StatusCodeEnum.BadRequest);
         }
         return Result<bool>.Success(isDeleted);
     }
@@ -62,14 +63,14 @@ public class CategoryService : ICategoryService
     {
         if(category.Id != id)
         {
-            return Result<CategoryResponse>.Failure("Error: Id of the category is not equal to id in query", StatusCode.BadRequest);
+            return Result<CategoryResponse>.Failure("Error: Id of the category is not equal to id in query", StatusCodeEnum.BadRequest);
         }
 
         bool isModified = await _categoryRepo.UpdateCategory(category.ToCategory());
 
         if (!isModified)
         {
-            return Result<CategoryResponse>.Failure("Error: Unable to update category",StatusCode.NotFound);
+            return Result<CategoryResponse>.Failure("Error: Unable to update category",StatusCodeEnum.NotFound);
         }
 
         return Result<CategoryResponse>.SuccessResult("Successfully updated");

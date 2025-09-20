@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using ProductMicroservice.Core.Domain.Entities;
 using ProductMicroservice.Core.Domain.RepositoryContracts;
 using ProductMicroservice.Core.DTO;
+using ProductMicroservice.Core.Enums;
 using ProductMicroservice.Core.Mappers;
 using ProductMicroservice.Core.RabbitMQ;
-using ProductMicroservice.Core.Result;
+using ProductMicroservice.Core.Results;
 using ProductMicroservice.Core.ServiceContracts;
 using System.Text.Json;
 
@@ -15,46 +17,79 @@ public class ProductService : IProductService
     private readonly IProductRepository _productRepo;
     private readonly IDistributedCache _cache;
     private readonly IRabbitMQPublisher _publisher;
-    public ProductService(IProductRepository productRepo, IDistributedCache cache, IRabbitMQPublisher publisher)
+    private readonly ILogger<ProductService> _logger;
+    public ProductService(IProductRepository productRepo, IDistributedCache cache, IRabbitMQPublisher publisher, ILogger<ProductService> logger)
     {
         _productRepo = productRepo;
         _cache = cache;
         _publisher = publisher;
+        _logger = logger;
     }
-    public async Task<Result<ProductResponse>> AddProductAsync(ProductAddRequest product)
+    public async Task<Result<ProductResponse>> AddProductAsync(ProductAddRequest request, CancellationToken cancellationToken)
     {
-        if(!await _productRepo.IsProductValid(product.ToProduct()))
+        Product product = request.ToProduct();
+        product.StockKeepingUnit.ToUpper();
+
+        if (!await _productRepo.IsCategoryExistsAsync(product.CategoryId, cancellationToken))
         {
-            return Result<ProductResponse>.Failure("Product is not unique. Change data to create new product", StatusCode.Conflict);
+            return Result<ProductResponse>.Failure("Category doesn't exist", StatusCodeEnum.BadRequest);
+        }
+        if (await _productRepo.IsSkuExistsAsync(product.StockKeepingUnit, cancellationToken))
+        {
+            return Result<ProductResponse>.Failure("Failed to create product: product with specific sku exists ", StatusCodeEnum.Conflict);
+        }
+        if (await _productRepo.ExistsByNameInCategoryAsync(product.Name, product.CategoryId, cancellationToken))
+        {
+            return Result<ProductResponse>.Failure("Failed to create product: Product with this name and category exists", StatusCodeEnum.Conflict);
         }
 
-        Product newProduct = await _productRepo.AddProductAsync(product.ToProduct());
+        Product newProduct = await _productRepo.AddProductAsync(product, cancellationToken);
 
-         _publisher.Publish("product.create", new ProductCreateMessage(newProduct.StockKeepingUnit, newProduct.Name));
+        _publisher.Publish("product.create", new ProductCreateMessage(newProduct.StockKeepingUnit, newProduct.Name));
 
         await _cache.RemoveAsync("products:all");
 
         return Result<ProductResponse>.Success(newProduct.ToProductResponse());
     }
 
-    public async Task<Result<ProductResponse>> DeleteProduct(Guid id, CancellationToken cancellationToken)
+    public async Task<Result> DeleteProduct(Guid id, CancellationToken cancellationToken)
     {
-        if(id == Guid.Empty)
+        if (id == Guid.Empty)
         {
-            return Result<ProductResponse>.Failure("Invalid id", StatusCode.BadRequest);
+            return Result.Failure("Invalid id", StatusCodeEnum.BadRequest);
         }
 
-        bool isDeleted = await _productRepo.DeleteProduct(id, cancellationToken);
-
-        if (!isDeleted) 
+        try
         {
-            return Result<ProductResponse>.Failure("The product don't exist", StatusCode.NotFound);
+            bool isDeleted = await _productRepo.DeleteProduct(id, cancellationToken);
+
+            if (!isDeleted)
+            {
+                return Result.Failure("The product don't exist", StatusCodeEnum.NotFound);
+            }
+            try
+            {
+                await _cache.RemoveAsync("products:all",cancellationToken);
+                await _cache.RemoveAsync($"products:{id}", cancellationToken);
+            }
+            catch (Exception cacheEx)
+            {
+                _logger.LogWarning(cacheEx, "Failed to remove cache");
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
 
-        await _cache.RemoveAsync("products:all");
-        await _cache.RemoveAsync($"products:{id}");
+        catch (Exception exception) {
 
-        return Result<ProductResponse>.SuccessResult("Deleted succesfully!");
+            _logger.LogError(exception, "Unexpected error deleting product {ProductId}", id);
+            return Result.Failure("Unexpected error while deleting product", StatusCodeEnum.InternalServerError);
+        }
+
+
+        return Result.Success("Deleted succesfully!");
     }
 
     public async Task<Result<ProductResponse>> GetProductByIdAsync(Guid id, CancellationToken cancellationToken)
@@ -71,11 +106,11 @@ public class ProductService : IProductService
         Product? product = await _productRepo.GetProductByIdAsync(id, cancellationToken);
         if (product == null)
         {
-            return Result<ProductResponse>.Failure("Product not found", StatusCode.NotFound);
+            return Result<ProductResponse>.Failure("Product not found", StatusCodeEnum.NotFound);
         }
 
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(product.ToProductResponse());
-        await _cache.SetAsync(cacheKey, bytes, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100)), cancellationToken); 
+        await _cache.SetAsync(cacheKey, bytes, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100)), cancellationToken);
 
         return Result<ProductResponse>.Success(product.ToProductResponse());
     }
@@ -84,7 +119,7 @@ public class ProductService : IProductService
     {
         if (string.IsNullOrEmpty(sku))
         {
-            return Result<ProductResponse>.Failure("Incorrect id", StatusCode.BadRequest);
+            return Result<ProductResponse>.Failure("Incorrect id", StatusCodeEnum.BadRequest);
         }
 
         string cacheKey = $"product:{sku}";
@@ -98,32 +133,12 @@ public class ProductService : IProductService
         Product? product = await _productRepo.GetProductBySkuAsync(sku);
         if (product == null)
         {
-            return Result<ProductResponse>.Failure("Product not found", StatusCode.NotFound);
+            return Result<ProductResponse>.Failure("Product not found", StatusCodeEnum.NotFound);
         }
 
         string productJson = JsonSerializer.Serialize(product.ToProductResponse());
         await _cache.SetStringAsync(cacheKey, productJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100)));
         return Result<ProductResponse>.Success(product.ToProductResponse());
-    }
-
-    public async Task<IEnumerable<ProductResponse>> GetProductsAsync()
-    {
-        string cacheKey = "products:all";
-        string? cachedProducts = await _cache.GetStringAsync(cacheKey); 
-
-        if (!string.IsNullOrEmpty(cachedProducts))
-        {
-            IEnumerable<ProductResponse>? productsFromCache = JsonSerializer.Deserialize<IEnumerable<ProductResponse>>(cachedProducts); 
-            return productsFromCache!;
-        }
-        
-        IEnumerable<Product> products = await _productRepo.GetProductsAsync(); 
-        IEnumerable<ProductResponse> responseList = products.Select(item => item.ToProductResponse());
-
-        string productsJson = JsonSerializer.Serialize(responseList); 
-        await _cache.SetStringAsync(cacheKey, productsJson, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(120)).SetSlidingExpiration(TimeSpan.FromSeconds(100)));
-
-        return responseList;
     }
 
     public async Task<PagedResult<ProductResponse>> GetProductsPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
@@ -141,18 +156,18 @@ public class ProductService : IProductService
         };
     }
 
-    public async Task<Result<ProductUpdateRequest>> UpdateProductAsync(ProductUpdateRequest product, Guid id, CancellationToken cancellationToken)
+    public async Task<Result> UpdateProductAsync(ProductUpdateRequest product, Guid id, CancellationToken cancellationToken)
     {
-        if(product.Id != id)
+        if (product == null)
         {
-            return Result<ProductUpdateRequest>.Failure("Error: Id of the product is not equal to id in query", StatusCode.BadRequest);
+            return Result.Failure("The request body is required", StatusCodeEnum.BadRequest);
         }
 
         bool isModified = await _productRepo.UpdateProductAsync(product.ToProduct(), id, cancellationToken);
 
         if (!isModified)
         {
-            return Result<ProductUpdateRequest>.Failure("Error: Product not found", StatusCode.NotFound);
+            return Result.Failure("Error: Product not found", StatusCodeEnum.NotFound);
         }
 
         string cacheKey = $"product:{id}";
@@ -160,6 +175,6 @@ public class ProductService : IProductService
         await _cache.RemoveAsync(cacheKey);
         await _cache.RemoveAsync(cacheKey2);
 
-        return Result<ProductUpdateRequest>.SuccessResult("Product successfully updated!");
+        return Result.Success("Product successfully updated!");
     }
 }

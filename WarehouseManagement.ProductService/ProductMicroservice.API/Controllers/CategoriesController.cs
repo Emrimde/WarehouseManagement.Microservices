@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductMicroservice.Core.DTO;
-using ProductMicroservice.Core.Result;
+using ProductMicroservice.Core.Results;
 using ProductMicroservice.Core.ServiceContracts;
 
 namespace ProductMicroservice.API.Controllers
