@@ -64,5 +64,21 @@ namespace ProductMicroservice.Infrastructure.Repositories
 
             return category?.Products ?? Enumerable.Empty<Product>();
         }
+
+        public async Task<int> GetActiveCategoriesAsync(CancellationToken cancellationToken)
+        {
+            return await _dbcontext.Categories.CountAsync(cancellationToken);
+        }
+
+        public async Task<IEnumerable<Category>> GetCategoriesAsync(int page, int pageSize, CancellationToken cancellationToken)
+        {
+            int offset = (page - 1) * pageSize;
+            return await _dbcontext.Categories
+                 .AsNoTracking()
+                 .OrderBy(item => item.Id)
+                 .Skip(offset)
+                 .Take(pageSize)
+                 .ToListAsync(cancellationToken);
+        }
     }
 }

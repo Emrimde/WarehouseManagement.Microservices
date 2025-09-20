@@ -7,7 +7,7 @@ namespace ProductMicroservice.Core.ServiceContracts
     {
         Task<Result<CategoryResponse>> AddCategory(CategoryAddRequest request);
         Task<Result<bool>> DeleteCategory(Guid id);
-        Task<IEnumerable<CategoryResponse>> GetCategories();
+        Task<PagedResult<CategoryResponse>> GetCategoriesAsync(int page, int pageSize, CancellationToken cancellationToken);
         Task<Result<CategoryResponse>> GetCategoryById(Guid id);
         Task<Result<IEnumerable<ProductResponse>>> GetRelatedProductsWithCategoryById(Guid id);
         Task<Result<CategoryResponse>> UpdateCategory(Guid id, CategoryUpdateRequest category);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using ProductMicroservice.Core.DTO;
 using ProductMicroservice.Core.Results;
 using ProductMicroservice.Core.ServiceContracts;
@@ -16,17 +17,26 @@ namespace ProductMicroservice.API.Controllers
             _categoryService = categoryService;
         }
 
-        // GET: api/Categories
+        [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status200OK)]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryResponse>>> GetCategories()
+        public async Task<ActionResult<IEnumerable<CategoryResponse>>> GetCategories(CancellationToken cancellationToken,[FromQuery] int page = 1,[FromQuery] int pageSize = 10)
         {
-            IEnumerable<CategoryResponse> categories = await _categoryService.GetCategories();
-            return Ok(categories);
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 1, 20);
+
+            PagedResult<CategoryResponse> result = await _categoryService.GetCategoriesAsync(page,pageSize,cancellationToken);
+
+            if (result.TotalCount.HasValue)
+            {
+                Response.Headers["X-Total-Count"] = result.TotalCount.Value.ToString();
+            }
+
+            return Ok(result.Items);
         }
 
         // GET: api/Categories/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<CategoryResponse>> GetCategory(Guid id)
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<CategoryResponse>> GetCategory([FromRoute] Guid id)
         {
             Result<CategoryResponse> response = await _categoryService.GetCategoryById(id);
             if (!response.IsSuccess)

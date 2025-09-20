@@ -14,11 +14,6 @@ public class CategoryService : ICategoryService
     {
         _categoryRepo = categoryRepo;
     }
-    public async Task<IEnumerable<CategoryResponse>> GetCategories()
-    {
-        IEnumerable<Category> categories = await _categoryRepo.GetAllCategoriesAsync();
-        return categories.Select(item => item.ToCategoryResponse());
-    }
 
     public async Task<Result<CategoryResponse>> GetCategoryById(Guid id)
     {
@@ -74,5 +69,15 @@ public class CategoryService : ICategoryService
         }
 
         return Result<CategoryResponse>.SuccessResult("Successfully updated");
+    }
+
+    public async Task<PagedResult<CategoryResponse>> GetCategoriesAsync(int page, int pageSize, CancellationToken cancellationToken)
+    {
+        IEnumerable<Category> categoryList = await _categoryRepo.GetCategoriesAsync(page, pageSize,cancellationToken);
+
+        int total = await _categoryRepo.GetCategoriesCountAsync(cancellationToken);
+
+        return PagedResult<CategoryResponse>.Create
+            (categoryList.Select(item => item.ToCategoryResponse()),page,pageSize);
     }
 }
