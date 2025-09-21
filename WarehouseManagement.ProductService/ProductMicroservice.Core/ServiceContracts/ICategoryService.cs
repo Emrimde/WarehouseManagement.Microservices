@@ -8,8 +8,8 @@ namespace ProductMicroservice.Core.ServiceContracts
         Task<Result<CategoryResponse>> AddCategory(CategoryAddRequest request);
         Task<Result<bool>> DeleteCategory(Guid id);
         Task<PagedResult<CategoryResponse>> GetCategoriesAsync(int page, int pageSize, CancellationToken cancellationToken);
-        Task<Result<CategoryResponse>> GetCategoryById(Guid id);
+        Task<Result<CategoryResponse>> GetCategoryAsync(Guid id, CancellationToken cancellationToken);
         Task<Result<IEnumerable<ProductResponse>>> GetRelatedProductsWithCategoryById(Guid id);
-        Task<Result<CategoryResponse>> UpdateCategory(Guid id, CategoryUpdateRequest category);
+        Task<Result> UpdateCategoryNameAsync(Guid id, CategoryUpdateRequest request, CancellationToken cancellatioToken);
     }
 }

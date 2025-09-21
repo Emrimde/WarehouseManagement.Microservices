@@ -8,8 +8,9 @@ namespace ProductMicroservice.Infrastructure.Repositories
         Task<bool> DeleteCategoryAsync(Guid id);
         Task<int> GetCategoriesCountAsync(CancellationToken cancellationToken);
         Task<IEnumerable<Category>> GetCategoriesAsync(int page, int pageSize, CancellationToken cancellationToken);
-        Task<Category?> GetCategoryByIdAsync(Guid id);
+        Task<Category?> GetCategoryAsync(Guid id,CancellationToken cancellationToken);
         Task<IEnumerable<Product>> GetRelatedProductsWithCategoryId(Guid id);
-        Task<bool> UpdateCategory(Category category);
+        Task<bool> UpdateCategoryNameAsync(Guid id, string name,CancellationToken cancellationToken);
+        Task<bool> IsCategoryNameUnique(string name, CancellationToken cancellationToken);
     }
 }

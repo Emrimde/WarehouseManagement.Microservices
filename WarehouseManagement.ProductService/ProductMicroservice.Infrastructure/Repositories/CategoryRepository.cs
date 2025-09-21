@@ -16,9 +16,9 @@ namespace ProductMicroservice.Infrastructure.Repositories
             return await _dbcontext.Categories.ToListAsync();
         }
 
-        public async Task<Category?> GetCategoryByIdAsync(Guid id)
+        public async Task<Category?> GetCategoryAsync(Guid id,CancellationToken cancellationToken)
         {
-            return await _dbcontext.Categories.FirstOrDefaultAsync(item => item.Id == id);
+            return await _dbcontext.Categories.FindAsync(id,cancellationToken);
         }
 
         public async Task<Category?> AddCategoryAsync(Category category)
@@ -30,7 +30,7 @@ namespace ProductMicroservice.Infrastructure.Repositories
 
         public async Task<bool> DeleteCategoryAsync(Guid id)
         {
-            Category? category = await GetCategoryByIdAsync(id);
+            Category? category = await _dbcontext.Categories.FindAsync(id);
             if (category == null)
             {
                 return false;
@@ -40,17 +40,17 @@ namespace ProductMicroservice.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> UpdateCategory(Category category)
+        public async Task<bool> UpdateCategoryNameAsync(Guid id, string name, CancellationToken cancellationToken)
         {
-            Category? existingCategory = await GetCategoryByIdAsync(category.Id);
+            Category? existingCategory = await _dbcontext.Categories.FindAsync(id,cancellationToken);
 
             if (existingCategory == null)
             {
                 return false;
             }
 
-            existingCategory.Name = category.Name;
-            await _dbcontext.SaveChangesAsync();
+            existingCategory.Name = name;
+            await _dbcontext.SaveChangesAsync(cancellationToken);
 
             return true;
         }
@@ -65,7 +65,7 @@ namespace ProductMicroservice.Infrastructure.Repositories
             return category?.Products ?? Enumerable.Empty<Product>();
         }
 
-        public async Task<int> GetActiveCategoriesAsync(CancellationToken cancellationToken)
+        public async Task<int> GetCategoriesCountAsync(CancellationToken cancellationToken)
         {
             return await _dbcontext.Categories.CountAsync(cancellationToken);
         }
@@ -79,6 +79,11 @@ namespace ProductMicroservice.Infrastructure.Repositories
                  .Skip(offset)
                  .Take(pageSize)
                  .ToListAsync(cancellationToken);
+        }
+
+        public async Task<bool> IsCategoryNameUnique(string name, CancellationToken cancellationToken)
+        {
+            return await _dbcontext.Categories.AnyAsync(item => item.Name == name, cancellationToken);
         }
     }
 }

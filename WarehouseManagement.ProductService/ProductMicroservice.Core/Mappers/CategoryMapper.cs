@@ -26,7 +26,6 @@ public static class CategoryMapper
     {
         return new Category()
         {
-            Id = request.Id,
             Name = request.Name,
         };
     }

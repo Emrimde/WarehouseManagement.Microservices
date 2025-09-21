@@ -4,7 +4,7 @@ namespace ProductMicroservice.Core.Results;
 public class Result
 {
     public bool IsSuccess { get; set; }
-    public string Message { get; set; }
+    public string? Message { get; set; }
     public StatusCodeEnum StatusCode { get; set; }
 
     private Result(bool isSuccess, string message, StatusCodeEnum statusCode)
@@ -14,10 +14,9 @@ public class Result
         StatusCode = statusCode;
     }
 
-    private Result(bool isSuccess, string message)
+    private Result(bool isSuccess)
     {
         IsSuccess = isSuccess;
-        Message = message;
     }
 
     public static Result Failure(string message, StatusCodeEnum statusCode)
@@ -25,8 +24,8 @@ public class Result
         return new Result(false, message, statusCode);
     }
 
-    public static Result Success(string message)
+    public static Result Success()
     {
-        return new Result(true, message);
+        return new Result(true);
     }
 }

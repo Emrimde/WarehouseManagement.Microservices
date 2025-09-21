@@ -35,10 +35,14 @@ namespace ProductMicroservice.API.Controllers
         }
 
         // GET: api/Categories/5
+        [ProducesResponseType(typeof(CategoryResponse),StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<CategoryResponse>> GetCategory([FromRoute] Guid id)
+        public async Task<ActionResult<CategoryResponse>> Get([FromRoute] Guid id, CancellationToken cancellationToken)
         {
-            Result<CategoryResponse> response = await _categoryService.GetCategoryById(id);
+            Result<CategoryResponse> response = await _categoryService.GetCategoryAsync(id, cancellationToken);
             if (!response.IsSuccess)
             {
                 return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
@@ -48,10 +52,13 @@ namespace ProductMicroservice.API.Controllers
         }
 
         // PUT: api/Categories/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(Guid id, [FromBody] CategoryUpdateRequest category)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status409Conflict)]
+        [HttpPatch("{id:guid}")]
+        public async Task<IActionResult> PutCategory(Guid id, [FromBody] CategoryUpdateRequest category,CancellationToken cancellationToken)
         {
-            Result<CategoryResponse> result = await _categoryService.UpdateCategory(id,category);
+            Result result = await _categoryService.UpdateCategoryNameAsync(id,category, cancellationToken);
             if (!result.IsSuccess)
             {
                 return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
