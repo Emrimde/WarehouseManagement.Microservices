@@ -66,15 +66,25 @@ public class CategoryService : ICategoryService
         return Result<CategoryResponse>.Success(categoryResponse);
     }
 
-    public async Task<Result<CategoryResponse>> AddCategory(CategoryAddRequest request)
+    public async Task<Result<CategoryResponse>> AddCategoryAsync(CategoryAddRequest request,CancellationToken cancellationToken)
     {
-        Category category = request.ToCategory();
-        Category? addedCategory = await _categoryRepo.AddCategoryAsync(category);
-        if (addedCategory == null)
+
+        string name = request.Name?.Trim() ?? string.Empty;
+        if(name.Length < 3 || name.Length > 30)
         {
-            return Result<CategoryResponse>.Failure("Category not added", StatusCodeEnum.NotFound);
+            return Result<CategoryResponse>.Failure("Name must be 3-30 characters", StatusCodeEnum.BadRequest);
         }
-        return Result<CategoryResponse>.Success(category.ToCategoryResponse());
+        if (!await _categoryRepo.IsCategoryNameUnique(name, cancellationToken)) 
+        {
+            return Result<CategoryResponse>.Failure("Name is not unique", StatusCodeEnum.Conflict);
+        }
+
+        Category category = request.ToCategory();
+
+        Category? addedCategory = await _categoryRepo.AddCategoryAsync(category,cancellationToken);
+     
+        CategoryResponse response = addedCategory.ToCategoryResponse();
+        return Result<CategoryResponse>.Success(response);
     }
 
     public async Task<Result<bool>> DeleteCategory(Guid id)

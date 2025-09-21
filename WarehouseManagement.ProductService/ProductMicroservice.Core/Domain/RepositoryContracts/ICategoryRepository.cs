@@ -4,7 +4,7 @@ namespace ProductMicroservice.Infrastructure.Repositories
 {
     public interface ICategoryRepository
     {
-        Task<Category?> AddCategoryAsync(Category category);
+        Task<Category> AddCategoryAsync(Category category, CancellationToken cancellationToken);
         Task<bool> DeleteCategoryAsync(Guid id);
         Task<int> GetCategoriesCountAsync(CancellationToken cancellationToken);
         Task<IEnumerable<Category>> GetCategoriesAsync(int page, int pageSize, CancellationToken cancellationToken);

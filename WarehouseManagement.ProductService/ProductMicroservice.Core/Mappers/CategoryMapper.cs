@@ -18,7 +18,7 @@ public static class CategoryMapper
 
         return new Category()
         {
-            Name = request.Name
+            Name = request.Name.Trim()
         };
     }
 

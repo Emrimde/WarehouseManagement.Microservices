@@ -70,15 +70,18 @@ namespace ProductMicroservice.API.Controllers
         // POST: api/Categories
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<CategoryResponse>> PostCategory(CategoryAddRequest category)
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status201Created)]
+        public async Task<ActionResult<CategoryResponse>> PostCategory([FromBody] CategoryAddRequest request,CancellationToken cancellationToken)
         {
-            Result<CategoryResponse> response = await _categoryService.AddCategory(category);
+            Result<CategoryResponse> response = await _categoryService.AddCategoryAsync(request, cancellationToken);
             if (!response.IsSuccess)
             {
                 return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
             }
 
-            return CreatedAtAction("GetCategory", new { id = response.Value!.Id }, category);
+            return CreatedAtAction(nameof(Get), new { id = response.Value!.Id }, response.Value);
         }
 
         // DELETE: api/Categories/5

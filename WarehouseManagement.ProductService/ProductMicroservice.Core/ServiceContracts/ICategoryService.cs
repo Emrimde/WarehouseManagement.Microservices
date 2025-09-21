@@ -5,7 +5,7 @@ namespace ProductMicroservice.Core.ServiceContracts
 {
     public interface ICategoryService
     {
-        Task<Result<CategoryResponse>> AddCategory(CategoryAddRequest request);
+        Task<Result<CategoryResponse>> AddCategoryAsync(CategoryAddRequest request, CancellationToken cancellationToken);
         Task<Result<bool>> DeleteCategory(Guid id);
         Task<PagedResult<CategoryResponse>> GetCategoriesAsync(int page, int pageSize, CancellationToken cancellationToken);
         Task<Result<CategoryResponse>> GetCategoryAsync(Guid id, CancellationToken cancellationToken);

@@ -16,15 +16,16 @@ namespace ProductMicroservice.Infrastructure.Repositories
             return await _dbcontext.Categories.ToListAsync();
         }
 
-        public async Task<Category?> GetCategoryAsync(Guid id,CancellationToken cancellationToken)
+        public async Task<Category?> GetCategoryAsync(Guid id, CancellationToken cancellationToken)
         {
-            return await _dbcontext.Categories.FindAsync(id,cancellationToken);
+            return await _dbcontext.Categories.FindAsync(id, cancellationToken);
         }
 
-        public async Task<Category?> AddCategoryAsync(Category category)
+        public async Task<Category> AddCategoryAsync(Category category, CancellationToken cancellationToken)
         {
-            await _dbcontext.Categories.AddAsync(category);
-            await _dbcontext.SaveChangesAsync();
+            _dbcontext.Categories.Add(category);
+            await _dbcontext.SaveChangesAsync(cancellationToken);
+
             return category;
         }
 
@@ -42,7 +43,7 @@ namespace ProductMicroservice.Infrastructure.Repositories
 
         public async Task<bool> UpdateCategoryNameAsync(Guid id, string name, CancellationToken cancellationToken)
         {
-            Category? existingCategory = await _dbcontext.Categories.FindAsync(id,cancellationToken);
+            Category? existingCategory = await _dbcontext.Categories.FindAsync(id, cancellationToken);
 
             if (existingCategory == null)
             {
@@ -83,7 +84,7 @@ namespace ProductMicroservice.Infrastructure.Repositories
 
         public async Task<bool> IsCategoryNameUnique(string name, CancellationToken cancellationToken)
         {
-            return await _dbcontext.Categories.AnyAsync(item => item.Name == name, cancellationToken);
+            return !await _dbcontext.Categories.AnyAsync(item => item.Name == name, cancellationToken);
         }
     }
 }
