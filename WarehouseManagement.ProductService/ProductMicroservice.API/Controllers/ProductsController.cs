@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductMicroservice.Core.DTO;
+using ProductMicroservice.Core.Enums;
 using ProductMicroservice.Core.Results;
 using ProductMicroservice.Core.ServiceContracts;
 
@@ -19,12 +20,12 @@ public class ProductsController : ControllerBase
     // GET: api/Products?page=1&pageSize=10
     [HttpGet("paged")]
     [ProducesResponseType(typeof(PagedResult<ProductResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PagedResult<ProductResponse>>> GetProducts(CancellationToken cancellationToken, [FromQuery] int page = 1,[FromQuery] int pageSize = 10)
+    public async Task<ActionResult<PagedResult<ProductResponse>>> GetProducts([FromQuery] string? name, CancellationToken cancellationToken, [FromQuery] int page = 1,[FromQuery] int pageSize = 10, [FromQuery] ProductSearchCategoriesEnum category = ProductSearchCategoriesEnum.None)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 30); 
 
-        PagedResult<ProductResponse> paged = await _productService.GetProductsPagedAsync(page, pageSize, cancellationToken);
+        PagedResult<ProductResponse> paged = await _productService.GetProductsPagedAsync(page, pageSize,name,category, cancellationToken);
 
         if (paged.TotalCount.HasValue)
         {
@@ -90,7 +91,7 @@ public class ProductsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ProductResponse>> PostProduct([FromBody] ProductAddRequest product, CancellationToken cancellationToken)
     {
-        Result<ProductResponse> result = await _productService.AddProductAsync(product, cancellationToken);
+        Result<ProductCreateResponse> result = await _productService.AddProductAsync(product, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -109,11 +110,14 @@ public class ProductsController : ControllerBase
 
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        Result result = await _productService.DeleteProduct(id,cancellationToken);
+        Result result = await _productService.DeleteProductAsync(id,cancellationToken);
         if (!result.IsSuccess)
         {
             return Problem(detail: result.Message,statusCode: (int)result.StatusCode);
         }
         return NoContent();
     }
+
+
+   
 }

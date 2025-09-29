@@ -31,7 +31,7 @@ namespace ProductMicroservice.API.Controllers
                 Response.Headers["X-Total-Count"] = result.TotalCount.Value.ToString();
             }
 
-            return Ok(result.Items);
+            return Ok(result);
         }
 
         // GET: api/Categories/5
@@ -55,8 +55,9 @@ namespace ProductMicroservice.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status400BadRequest)]
         [HttpPatch("{id:guid}")]
-        public async Task<IActionResult> PutCategory(Guid id, [FromBody] CategoryUpdateRequest category,CancellationToken cancellationToken)
+        public async Task<IActionResult> PutCategory([FromRoute] Guid id, [FromBody] CategoryUpdateRequest category,CancellationToken cancellationToken)
         {
             Result result = await _categoryService.UpdateCategoryNameAsync(id,category, cancellationToken);
             if (!result.IsSuccess)
@@ -85,10 +86,14 @@ namespace ProductMicroservice.API.Controllers
         }
 
         // DELETE: api/Categories/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(Guid id)
+        [HttpDelete("{id:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails),StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeleteCategory([FromRoute] Guid id,CancellationToken cancellationToken)
         {
-            Result<bool> response = await _categoryService.DeleteCategory(id);
+            Result response = await _categoryService.DeleteCategoryAsync(id,cancellationToken);
+
             if (!response.IsSuccess)
             {
                 return Problem(detail: response.Message, statusCode: (int)response.StatusCode);
@@ -97,7 +102,11 @@ namespace ProductMicroservice.API.Controllers
             return NoContent();
         }
 
-        [HttpGet("relatedProducts/{id}")]
+        [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(IEnumerable<CategoryResponse>), StatusCodes.Status404NotFound)]
+        [HttpGet("relatedProducts/{id:guid}")]
         public async Task<ActionResult<IEnumerable<ProductResponse>>> GetRelatedProductsWithCategoryById(Guid id)
         {
             Result<IEnumerable<ProductResponse>> response = await _categoryService.GetRelatedProductsWithCategoryById(id);

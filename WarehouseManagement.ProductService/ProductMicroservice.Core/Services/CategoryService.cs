@@ -7,6 +7,7 @@ using ProductMicroservice.Core.Mappers;
 using ProductMicroservice.Core.Results;
 using ProductMicroservice.Core.ServiceContracts;
 using ProductMicroservice.Infrastructure.Repositories;
+using System;
 using System.Text.Json;
 
 namespace ProductMicroservice.Core.Services;
@@ -66,36 +67,60 @@ public class CategoryService : ICategoryService
         return Result<CategoryResponse>.Success(categoryResponse);
     }
 
-    public async Task<Result<CategoryResponse>> AddCategoryAsync(CategoryAddRequest request,CancellationToken cancellationToken)
+    public async Task<Result<CategoryResponse>> AddCategoryAsync(CategoryAddRequest request, CancellationToken cancellationToken)
     {
 
         string name = request.Name?.Trim() ?? string.Empty;
-        if(name.Length < 3 || name.Length > 30)
+        if (name.Length < 3 || name.Length > 30)
         {
             return Result<CategoryResponse>.Failure("Name must be 3-30 characters", StatusCodeEnum.BadRequest);
         }
-        if (!await _categoryRepo.IsCategoryNameUnique(name, cancellationToken)) 
+        if (!await _categoryRepo.IsCategoryNameUnique(name, cancellationToken))
         {
             return Result<CategoryResponse>.Failure("Name is not unique", StatusCodeEnum.Conflict);
         }
 
         Category category = request.ToCategory();
 
-        Category? addedCategory = await _categoryRepo.AddCategoryAsync(category,cancellationToken);
-     
+        Category? addedCategory = await _categoryRepo.AddCategoryAsync(category, cancellationToken);
+
         CategoryResponse response = addedCategory.ToCategoryResponse();
         return Result<CategoryResponse>.Success(response);
     }
 
-    public async Task<Result<bool>> DeleteCategory(Guid id)
+    public async Task<Result> DeleteCategoryAsync(Guid id, CancellationToken cancellationToken)
     {
-
-        bool isDeleted = await _categoryRepo.DeleteCategoryAsync(id);
-        if (!isDeleted)
+        if (id == Guid.Empty)
         {
-            return Result<bool>.Failure("Category not deleted", StatusCodeEnum.BadRequest);
+            return Result.Failure("Invalid id", StatusCodeEnum.BadRequest);
         }
-        return Result<bool>.Success(isDeleted);
+
+        try
+        {
+
+            bool isDeleted = await _categoryRepo.DeleteCategoryAsync(id, cancellationToken);
+            if (!isDeleted)
+            {
+                return Result.Failure("Category not deleted", StatusCodeEnum.BadRequest);
+            }
+
+            try
+            {
+                await _cache.RemoveAsync($"category:{id}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to remove cache");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error deleting category {categoryId}", id);
+            return Result.Failure("Unexpected error while deleting category", StatusCodeEnum.InternalServerError);
+        }
+
+        return Result.Success();
     }
 
     public async Task<Result<IEnumerable<ProductResponse>>> GetRelatedProductsWithCategoryById(Guid id)
@@ -105,18 +130,18 @@ public class CategoryService : ICategoryService
         return Result<IEnumerable<ProductResponse>>.Success(productsList.Select(item => item.ToProductResponse()));
     }
 
-    public async Task<Result> UpdateCategoryNameAsync(Guid id, CategoryUpdateRequest request,CancellationToken cancellationToken)
+    public async Task<Result> UpdateCategoryNameAsync(Guid id, CategoryUpdateRequest request, CancellationToken cancellationToken)
     {
         string name = request.Name?.Trim() ?? string.Empty;
-        if(name.Length < 3 || name.Length > 30)
+        if (name.Length < 3 || name.Length > 30)
         {
             return Result.Failure("Name must be 3-30 characters", StatusCodeEnum.BadRequest);
         }
-        if(await _categoryRepo.IsCategoryNameUnique(name,cancellationToken))
+        if (await _categoryRepo.IsCategoryNameUnique(name, cancellationToken))
         {
-            return Result.Failure("Category isn't unique",StatusCodeEnum.Conflict); 
+            return Result.Failure("Category isn't unique", StatusCodeEnum.Conflict);
         }
-        bool isModified = await _categoryRepo.UpdateCategoryNameAsync(id,name, cancellationToken);
+        bool isModified = await _categoryRepo.UpdateCategoryNameAsync(id, name, cancellationToken);
 
         if (!isModified)
         {
@@ -126,7 +151,7 @@ public class CategoryService : ICategoryService
         {
             await _cache.RemoveAsync($"category:{id}", cancellationToken);
         }
-        catch(Exception cacheError) 
+        catch (Exception cacheError)
         {
             _logger.LogWarning(cacheError, "Failed to remove cache for category {CategoryId}", id);
 

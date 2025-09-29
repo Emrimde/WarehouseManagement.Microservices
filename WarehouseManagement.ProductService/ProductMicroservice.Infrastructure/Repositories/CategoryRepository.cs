@@ -29,15 +29,16 @@ namespace ProductMicroservice.Infrastructure.Repositories
             return category;
         }
 
-        public async Task<bool> DeleteCategoryAsync(Guid id)
+        public async Task<bool> DeleteCategoryAsync(Guid id, CancellationToken cancellationToken)
         {
-            Category? category = await _dbcontext.Categories.FindAsync(id);
+            Category? category = await _dbcontext.Categories.FindAsync(id,cancellationToken);
             if (category == null)
             {
                 return false;
             }
+
             _dbcontext.Remove(category);
-            await _dbcontext.SaveChangesAsync();
+            await _dbcontext.SaveChangesAsync(cancellationToken);
             return true;
         }
 

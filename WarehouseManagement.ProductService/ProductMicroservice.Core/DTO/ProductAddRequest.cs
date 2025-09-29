@@ -3,22 +3,18 @@
 namespace ProductMicroservice.Core.DTO;
 public class ProductAddRequest
 {
-    [Required]
-    [StringLength(100, MinimumLength = 2)]
+    [Required(ErrorMessage = "Name is required")]
+    [StringLength(45, MinimumLength = 3,ErrorMessage ="Name must be 3-45 characters")]
     public string Name { get; set; } = default!;
 
-    [Required]
-    [StringLength(500)]
+    [Required(ErrorMessage ="Description is required")]
+    [StringLength(150, MinimumLength = 20, ErrorMessage ="The description must be 20-150 characters")]
     public string Description { get; set; } = default!;
 
-    [Required]
-    [StringLength(50)]
-    public string StockKeepingUnit { get; set; } = default!;
+    [Required(ErrorMessage ="CategoryId is required")]
+    public Guid? CategoryId { get; set; }
 
-    [Required]
-    public Guid CategoryId { get; set; }
-
-    [Required]
-    [StringLength(50)]
+    [Required(ErrorMessage = "Manufacturer is required")]
+    [StringLength(50,MinimumLength = 3,ErrorMessage = "Manufacturer must be 3-50 characters")]
     public string Manufacturer { get; set; } = default!;
 }

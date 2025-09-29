@@ -2,6 +2,7 @@
 using ProductMicroservice.Core.Domain.Entities;
 using ProductMicroservice.Core.Domain.RepositoryContracts;
 using ProductMicroservice.Core.DTO;
+using ProductMicroservice.Core.Enums;
 using ProductMicroservice.Core.Mappers;
 using ProductMicroservice.Infrastructure.DatabaseContext;
 
@@ -54,25 +55,12 @@ public class ProductRepository : IProductRepository
         return await _dbContext.Products
             .AsNoTracking()
             .Include(item => item.Category)
-            .FirstOrDefaultAsync(item => item.Id == id && item.IsActive == false);
+            .FirstOrDefaultAsync(item => item.Id == id && item.IsActive, cancellationToken);
     }
 
     public async Task<Product?> GetProductBySkuAsync(string sku)
     {
         return await _dbContext.Products.FirstOrDefaultAsync(item => item.StockKeepingUnit == sku);
-    }
-
-    public async Task<IEnumerable<Product>> GetProductsPageProjectedAsync(int page, int pageSize, CancellationToken cancellationToken)
-    {
-        int offset = (page - 1) * pageSize;
-        return await _dbContext.Products
-            .Include(item => item.Category)
-            .AsNoTracking()
-            .Where(product => product.IsActive)
-            .OrderBy(item => item.Id)
-            .Skip(offset)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
     }
     public async Task<bool> IsCategoryExistsAsync(Guid categoryId, CancellationToken cancellationToken)
     {
@@ -86,7 +74,6 @@ public class ProductRepository : IProductRepository
         }
         return await _dbContext.Products.AnyAsync(item => item.StockKeepingUnit == sku, cancellationToken);
     }
-
     public async Task<bool> ExistsByNameInCategoryAsync(string name, Guid categoryId, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -106,11 +93,55 @@ public class ProductRepository : IProductRepository
             return false;
         }
 
+        if (existingProduct.Name == product.Name && existingProduct.Description == product.Description) 
+        {
+            return false;
+        }
+
         existingProduct.Description = product.Description;
         existingProduct.Name = product.Name;
         existingProduct.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return true; 
+    }
+
+    public Task<IEnumerable<Product>> SearchForProduct(ProductSearchCategoriesEnum category, string name, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<IEnumerable<Product>> GetProductsPageProjectedAsync(int page, int pageSize, string? name, ProductSearchCategoriesEnum category, CancellationToken cancellationToken)
+    {
+        int offset = (page - 1) * pageSize;
+        var products = _dbContext.Products
+            .Include(item => item.Category)
+            .AsNoTracking()
+            .Where(product => product.IsActive);
+
+        if(category != ProductSearchCategoriesEnum.None && name != null)
+        {
+            switch (category)
+            {
+                case ProductSearchCategoriesEnum.Name:
+                    products = products.Where(item => item.Name.Contains(name)); break;
+                case ProductSearchCategoriesEnum.Manufacturer:
+                    products = products.Where(item => item.Manufacturer.Contains(name)); break;
+                case ProductSearchCategoriesEnum.Description:
+                    products = products.Where(item => item.Description.Contains(name)); break;
+
+
+            }
+        }
+        else if(category == ProductSearchCategoriesEnum.None && name != null)
+        {
+            products = products.Where(item => item.Name.Contains(name));
+        }
+
+
+            return await products.OrderBy(item => item.Id)
+            .Skip(offset)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
     }
 }

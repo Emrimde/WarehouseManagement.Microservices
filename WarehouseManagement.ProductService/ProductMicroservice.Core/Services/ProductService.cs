@@ -8,6 +8,7 @@ using ProductMicroservice.Core.Mappers;
 using ProductMicroservice.Core.RabbitMQ;
 using ProductMicroservice.Core.Results;
 using ProductMicroservice.Core.ServiceContracts;
+using ProductMicroservice.Infrastructure.Repositories;
 using System.Text.Json;
 
 
@@ -25,34 +26,42 @@ public class ProductService : IProductService
         _publisher = publisher;
         _logger = logger;
     }
-    public async Task<Result<ProductResponse>> AddProductAsync(ProductAddRequest request, CancellationToken cancellationToken)
+    public async Task<Result<ProductCreateResponse>> AddProductAsync(ProductAddRequest request, CancellationToken cancellationToken)
     {
         Product product = request.ToProduct();
-        product.StockKeepingUnit.ToUpper();
+        string stockKeepingUnit = GenerateStockKeepingUnit(product);
+        product.StockKeepingUnit = stockKeepingUnit;
 
         if (!await _productRepo.IsCategoryExistsAsync(product.CategoryId, cancellationToken))
         {
-            return Result<ProductResponse>.Failure("Category doesn't exist", StatusCodeEnum.BadRequest);
+            return Result<ProductCreateResponse>.Failure("Category doesn't exist", StatusCodeEnum.BadRequest);
         }
         if (await _productRepo.IsSkuExistsAsync(product.StockKeepingUnit, cancellationToken))
         {
-            return Result<ProductResponse>.Failure("Failed to create product: product with specific sku exists ", StatusCodeEnum.Conflict);
+            return Result<ProductCreateResponse>.Failure("Failed to create product: product with specific sku exists ", StatusCodeEnum.Conflict);
         }
         if (await _productRepo.ExistsByNameInCategoryAsync(product.Name, product.CategoryId, cancellationToken))
         {
-            return Result<ProductResponse>.Failure("Failed to create product: Product with this name and category exists", StatusCodeEnum.Conflict);
+            return Result<ProductCreateResponse>.Failure("Failed to create product: Product with this name and category exists", StatusCodeEnum.Conflict);
         }
 
         Product newProduct = await _productRepo.AddProductAsync(product, cancellationToken);
 
         _publisher.Publish("product.create", new ProductCreateMessage(newProduct.StockKeepingUnit, newProduct.Name));
 
-        await _cache.RemoveAsync("products:all");
+        await _cache.RemoveAsync("products:all", cancellationToken);
 
-        return Result<ProductResponse>.Success(newProduct.ToProductResponse());
+        return Result<ProductCreateResponse>.Success(newProduct.ToProductCreateResponse());
     }
-
-    public async Task<Result> DeleteProduct(Guid id, CancellationToken cancellationToken)
+    private string GenerateStockKeepingUnit(Product product)
+    {
+        string categoryPart = product.CategoryId.ToString().ToUpper().Substring(0, 3);
+        string namePart = product.Name.ToUpper().Substring(0, 4);
+        string uniquePart = DateTime.UtcNow.Ticks.ToString().Substring(10);
+        string stockKeepingUnit = $"{namePart}-{categoryPart}-{uniquePart}";
+        return stockKeepingUnit;
+    }
+    public async Task<Result> DeleteProductAsync(Guid id, CancellationToken cancellationToken)
     {
         if (id == Guid.Empty)
         {
@@ -69,7 +78,7 @@ public class ProductService : IProductService
             }
             try
             {
-                await _cache.RemoveAsync("products:all",cancellationToken);
+                await _cache.RemoveAsync("products:all", cancellationToken);
                 await _cache.RemoveAsync($"products:{id}", cancellationToken);
             }
             catch (Exception cacheEx)
@@ -82,14 +91,15 @@ public class ProductService : IProductService
             throw;
         }
 
-        catch (Exception exception) {
+        catch (Exception exception)
+        {
 
             _logger.LogError(exception, "Unexpected error deleting product {ProductId}", id);
             return Result.Failure("Unexpected error while deleting product", StatusCodeEnum.InternalServerError);
         }
 
 
-        return Result.Success("Deleted succesfully!");
+        return Result.Success();
     }
 
     public async Task<Result<ProductResponse>> GetProductByIdAsync(Guid id, CancellationToken cancellationToken)
@@ -141,21 +151,6 @@ public class ProductService : IProductService
         return Result<ProductResponse>.Success(product.ToProductResponse());
     }
 
-    public async Task<PagedResult<ProductResponse>> GetProductsPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
-    {
-        IEnumerable<Product> items = await _productRepo.GetProductsPageProjectedAsync(page, pageSize, cancellationToken);
-
-        int total = await _productRepo.GetActiveProductsCountAsync(cancellationToken);
-
-        return new PagedResult<ProductResponse>
-        {
-            Items = items.Select(item => item.ToProductResponse()),
-            Page = page,
-            PageSize = pageSize,
-            TotalCount = total
-        };
-    }
-
     public async Task<Result> UpdateProductAsync(ProductUpdateRequest product, Guid id, CancellationToken cancellationToken)
     {
         if (product == null)
@@ -167,7 +162,7 @@ public class ProductService : IProductService
 
         if (!isModified)
         {
-            return Result.Failure("Error: Product not found", StatusCodeEnum.NotFound);
+            return Result.Failure("Error: Product cannot be edited", StatusCodeEnum.BadRequest);
         }
 
         string cacheKey = $"product:{id}";
@@ -175,6 +170,20 @@ public class ProductService : IProductService
         await _cache.RemoveAsync(cacheKey);
         await _cache.RemoveAsync(cacheKey2);
 
-        return Result.Success("Product successfully updated!");
+        return Result.Success();
+    }
+    public async Task<PagedResult<ProductResponse>> GetProductsPagedAsync(int page, int pageSize, string? name, ProductSearchCategoriesEnum category, CancellationToken cancellationToken)
+    {
+        IEnumerable<Product> items = await _productRepo.GetProductsPageProjectedAsync(page, pageSize,name, category, cancellationToken);
+
+        int total = await _productRepo.GetActiveProductsCountAsync(cancellationToken);
+
+        return new PagedResult<ProductResponse>
+        {
+            Items = items.Select(item => item.ToProductResponse()),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = total
+        };
     }
 }

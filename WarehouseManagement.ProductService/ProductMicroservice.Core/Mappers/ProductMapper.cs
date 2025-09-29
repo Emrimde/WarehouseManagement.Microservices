@@ -19,6 +19,15 @@ public static class ProductMapper
         );
     }
 
+    public static ProductCreateResponse ToProductCreateResponse(this Product product)
+    {
+        return new ProductCreateResponse
+        (
+             product.Id,
+             product.Name
+        );
+    }
+
     public static Product ToProduct(this ProductUpdateRequest product)
     {
         return new Product()
@@ -34,8 +43,7 @@ public static class ProductMapper
         {
             Name = product.Name,
             Description = product.Description,
-            StockKeepingUnit = product.StockKeepingUnit,
-            CategoryId = product.CategoryId,
+            CategoryId = product.CategoryId!.Value,
             Manufacturer = product.Manufacturer,
         };
     }
