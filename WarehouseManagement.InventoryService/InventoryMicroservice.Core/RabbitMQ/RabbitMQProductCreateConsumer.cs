@@ -36,7 +36,7 @@ public class RabbitMQProductCreateConsumer : IDisposable, IRabbitMQProductCreate
                 connected = true;
                 _logger.LogInformation("RabbitMQ connection success");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 attempt++;
                 _logger.LogError($"Failed to connect to RabbitMQ. Attempt: {attempt}");

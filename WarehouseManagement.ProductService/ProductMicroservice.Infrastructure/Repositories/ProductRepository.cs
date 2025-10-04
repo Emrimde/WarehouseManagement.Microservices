@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ProductMicroservice.Core.Domain.Entities;
 using ProductMicroservice.Core.Domain.RepositoryContracts;
 using ProductMicroservice.Core.DTO;
@@ -10,15 +11,17 @@ namespace ProductMicroservice.Infrastructure.Repositories;
 public class ProductRepository : IProductRepository
 {
     private readonly ApplicationDbContext _dbContext;
-    public ProductRepository(ApplicationDbContext dbContext)
+    private readonly ILogger<ProductRepository> _logger;
+    public ProductRepository(ApplicationDbContext dbContext,ILogger<ProductRepository> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<Product> AddProductAsync(Product product, CancellationToken cancellationToken)
     {
         product.IsActive = true;
-        product.CreatedAt = DateTime.UtcNow; 
+        product.CreatedAt = DateTime.UtcNow;
         _dbContext.Products.Add(product);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -28,7 +31,8 @@ public class ProductRepository : IProductRepository
     public async Task<bool> DeleteProduct(Guid id, CancellationToken cancellationToken)
     {
         Product? product = await _dbContext.Products.FindAsync(id, cancellationToken);
-        if (product == null) {
+        if (product == null)
+        {
             return false;
         }
 
@@ -45,12 +49,12 @@ public class ProductRepository : IProductRepository
         return true;
     }
 
-    public async Task<int> GetActiveProductsCountAsync(CancellationToken cancellationToken)
+    public async Task<int> GetProductsCountAsync(bool showActive, CancellationToken cancellationToken)
     {
-        return await _dbContext.Products.Where(item => item.IsActive).CountAsync(cancellationToken);
+        return await _dbContext.Products.Where(item => item.IsActive == showActive).CountAsync(cancellationToken);
     }
 
-    public async Task<Product?> GetProductByIdAsync(Guid id,CancellationToken cancellationToken)
+    public async Task<Product?> GetProductByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _dbContext.Products
             .AsNoTracking()
@@ -93,7 +97,7 @@ public class ProductRepository : IProductRepository
             return false;
         }
 
-        if (existingProduct.Name == product.Name && existingProduct.Description == product.Description) 
+        if (existingProduct.Name == product.Name && existingProduct.Description == product.Description)
         {
             return false;
         }
@@ -103,23 +107,30 @@ public class ProductRepository : IProductRepository
         existingProduct.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return true; 
+        return true;
     }
 
-    public Task<IEnumerable<Product>> SearchForProduct(ProductSearchCategoriesEnum category, string name, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<IEnumerable<Product>> GetProductsPageProjectedAsync(int page, int pageSize, string? name, ProductSearchCategoriesEnum category, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Product>> GetProductsPageProjectedAsync(int page, int pageSize, string? name, ProductSearchCategoriesEnum category, CancellationToken cancellationToken, bool showActive)
     {
         int offset = (page - 1) * pageSize;
-        var products = _dbContext.Products
-            .Include(item => item.Category)
-            .AsNoTracking()
-            .Where(product => product.IsActive);
+        IQueryable<Product> products = null!;
 
-        if(category != ProductSearchCategoriesEnum.None && name != null)
+        if (showActive)
+        {
+            products = _dbContext.Products
+               .Include(item => item.Category)
+               .AsNoTracking()
+               .Where(product => product.IsActive);
+        }
+        else
+        {
+            products = _dbContext.Products
+               .Include(item => item.Category)
+               .AsNoTracking()
+               .Where(product => !product.IsActive);
+        }
+
+        if (category != ProductSearchCategoriesEnum.None && name != null)
         {
             switch (category)
             {
@@ -133,15 +144,57 @@ public class ProductRepository : IProductRepository
 
             }
         }
-        else if(category == ProductSearchCategoriesEnum.None && name != null)
+        else if (category == ProductSearchCategoriesEnum.None && name != null)
         {
             products = products.Where(item => item.Name.Contains(name));
         }
 
 
-            return await products.OrderBy(item => item.Id)
-            .Skip(offset)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+        return await products.OrderBy(item => item.Id)
+        .Skip(offset)
+        .Take(pageSize)
+        .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> PermanentDeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        Product? product = await _dbContext.Products.FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
+
+        if (product == null)
+        {
+            return false;
+        }
+
+        _dbContext.Products.Remove(product);
+        int isDeleted = await _dbContext.SaveChangesAsync();
+
+        if (isDeleted == 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public async Task<bool> RestoreProductAsync(Guid id, CancellationToken cancellationToken)
+    {
+        Product? product = await _dbContext.Products.FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
+        if (product == null)
+        {
+            return false;
+        }
+
+        product.IsActive = true;
+        int restoredRecord = 0;
+        try
+        {
+            restoredRecord = await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogWarning("Database update error {exception}", ex);
+            return false;
+        }
+        return restoredRecord > 0;
     }
 }

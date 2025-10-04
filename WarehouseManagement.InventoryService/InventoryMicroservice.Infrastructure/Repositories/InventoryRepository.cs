@@ -21,7 +21,8 @@ public class InventoryRepository : IInventoryRepository
             ProductName = productName,
             QuantityOnHand = 0,                         
             QuantityReserved = 0,                       
-            UpdatedAt = DateTime.UtcNow               
+            UpdatedAt = DateTime.UtcNow,
+            UnitPrice = 0
         };
 
         _dbContext.InventoryItems.Add(inventoryItem); 
@@ -30,9 +31,9 @@ public class InventoryRepository : IInventoryRepository
         return inventoryItem;
     }
 
-    public async Task<InventoryItem?> AdjustInventoryItem(string sku, InventoryItem inventoryItem)
+    public async Task<InventoryItem?> AdjustInventoryItem(string sku, InventoryItem inventoryItem,CancellationToken cancellationToken)
     {
-        InventoryItem? existingInventoryItem = await GetInventoryBySku(sku);
+        InventoryItem? existingInventoryItem = await GetInventoryBySkuAsync(sku,cancellationToken);
         if (existingInventoryItem == null) 
         {
             return null;
@@ -44,15 +45,15 @@ public class InventoryRepository : IInventoryRepository
         return inventoryItem;
     }
 
-    public async Task<InventoryItem?> GetInventoryBySku(string sku)
+    public async Task<InventoryItem?> GetInventoryBySkuAsync(string sku,CancellationToken cancellationToken)
     {
         return await _dbContext.InventoryItems.FirstOrDefaultAsync(item => item.StockKeepingUnit == sku);
     }
 
     public async Task<InventoryItem?> ReleaseQuantity(string sku, int adjustment)
     {
-        InventoryItem? inventoryItem = await GetInventoryBySku(sku);
-        if(inventoryItem == null)
+        InventoryItem? inventoryItem = await _dbContext.InventoryItems.FirstOrDefaultAsync(item => item.StockKeepingUnit == sku);
+        if (inventoryItem == null)
         {
             return null;
         }
@@ -64,7 +65,7 @@ public class InventoryRepository : IInventoryRepository
 
     public async Task<InventoryItem?> ReserveQuantity(string sku, int adjustment)
     {
-        InventoryItem? inventoryItem = await GetInventoryBySku(sku);
+        InventoryItem? inventoryItem = await _dbContext.InventoryItems.FirstOrDefaultAsync(item => item.StockKeepingUnit == sku);
 
         if (inventoryItem == null)
         {
@@ -75,5 +76,15 @@ public class InventoryRepository : IInventoryRepository
         await _dbContext.SaveChangesAsync();
 
         return inventoryItem;
+    }
+
+    public async Task<IEnumerable<InventoryItem>> GetAllInventoryItems(int page, int pageSize, CancellationToken cancellationToken)
+    {
+        int offset = (page - 1) * pageSize;
+        return await _dbContext.InventoryItems.AsNoTracking().OrderBy(item => item.QuantityOnHand).Skip(offset).Take(pageSize).ToListAsync(cancellationToken);
+    }
+    public async Task<int> GetInventoryItemsCount()
+    {
+        return await _dbContext.InventoryItems.CountAsync();
     }
 }

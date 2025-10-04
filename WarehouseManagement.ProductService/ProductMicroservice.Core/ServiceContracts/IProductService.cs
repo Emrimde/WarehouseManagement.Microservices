@@ -10,6 +10,7 @@ public interface IProductService
     Task<Result> UpdateProductAsync(ProductUpdateRequest product, Guid id, CancellationToken cancellationToken);
     Task<Result<ProductCreateResponse>> AddProductAsync(ProductAddRequest product, CancellationToken cancellationToken);
     Task<Result> DeleteProductAsync(Guid id, CancellationToken cancellationToken);
-    Task<PagedResult<ProductResponse>> GetProductsPagedAsync(int page, int pageSize, string? name, ProductSearchCategoriesEnum category, CancellationToken cancellationToken);
-    
+    Task<PagedResult<ProductResponse>> GetProductsPagedAsync(int page, int pageSize, string? name, ProductSearchCategoriesEnum category, CancellationToken cancellationToken, bool showActive);
+    Task<Result> PermanentDeleteAsync(Guid id, CancellationToken cancellationToken);
+    Task<Result> RestoreProductAsync(Guid id, CancellationToken cancellationToken);
 }

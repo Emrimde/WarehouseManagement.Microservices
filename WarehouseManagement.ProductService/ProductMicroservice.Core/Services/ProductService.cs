@@ -9,6 +9,7 @@ using ProductMicroservice.Core.RabbitMQ;
 using ProductMicroservice.Core.Results;
 using ProductMicroservice.Core.ServiceContracts;
 using ProductMicroservice.Infrastructure.Repositories;
+using System.Data;
 using System.Text.Json;
 
 
@@ -172,11 +173,11 @@ public class ProductService : IProductService
 
         return Result.Success();
     }
-    public async Task<PagedResult<ProductResponse>> GetProductsPagedAsync(int page, int pageSize, string? name, ProductSearchCategoriesEnum category, CancellationToken cancellationToken)
+    public async Task<PagedResult<ProductResponse>> GetProductsPagedAsync(int page, int pageSize, string? name, ProductSearchCategoriesEnum category, CancellationToken cancellationToken, bool showActive)
     {
-        IEnumerable<Product> items = await _productRepo.GetProductsPageProjectedAsync(page, pageSize,name, category, cancellationToken);
+        IEnumerable<Product> items = await _productRepo.GetProductsPageProjectedAsync(page, pageSize,name, category, cancellationToken,showActive);
 
-        int total = await _productRepo.GetActiveProductsCountAsync(cancellationToken);
+        int total = await _productRepo.GetProductsCountAsync(showActive,cancellationToken);
 
         return new PagedResult<ProductResponse>
         {
@@ -185,5 +186,45 @@ public class ProductService : IProductService
             PageSize = pageSize,
             TotalCount = total
         };
+    }
+
+    public async Task<Result> PermanentDeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        if(id == Guid.Empty)
+        {
+            return Result.Failure("Id is empty", StatusCodeEnum.BadRequest);
+        }
+
+        bool isDeleted = await _productRepo.PermanentDeleteAsync(id, cancellationToken);
+
+        if (!isDeleted)
+        {
+            return Result.Failure("Cannot delete product: Product not found", StatusCodeEnum.NotFound);
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> RestoreProductAsync(Guid id, CancellationToken cancellationToken)
+    {
+        if(id == Guid.Empty)
+        {
+            return Result.Failure("Bad id", StatusCodeEnum.BadRequest);
+        }
+        bool isRestored = false;
+        try
+        {
+           isRestored = await _productRepo.RestoreProductAsync(id, cancellationToken);
+        }
+        catch (DBConcurrencyException) {
+            return Result.Failure("Record was modified or deleted by another user.", StatusCodeEnum.Conflict);
+        }
+
+        if (!isRestored)
+        {
+            return Result.Failure("Error during restoring product", StatusCodeEnum.BadRequest);
+        }
+
+        return Result.Success();
     }
 }

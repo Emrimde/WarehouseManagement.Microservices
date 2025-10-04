@@ -23,6 +23,8 @@ namespace ProductMicroservice.Infrastructure.Repositories
 
         public async Task<Category> AddCategoryAsync(Category category, CancellationToken cancellationToken)
         {
+            category.IsActive = true;
+            category.CreatedAt = DateTime.UtcNow;
             _dbcontext.Categories.Add(category);
             await _dbcontext.SaveChangesAsync(cancellationToken);
 
@@ -37,7 +39,7 @@ namespace ProductMicroservice.Infrastructure.Repositories
                 return false;
             }
 
-            _dbcontext.Remove(category);
+            category.IsActive = false;
             await _dbcontext.SaveChangesAsync(cancellationToken);
             return true;
         }
@@ -61,15 +63,15 @@ namespace ProductMicroservice.Infrastructure.Repositories
         {
             Category? category = await _dbcontext.Categories
                                            .AsNoTracking()
-                                           .Include(c => c.Products)
-                                           .FirstOrDefaultAsync(c => c.Id == id);
+                                           .Include(item => item.Products)
+                                           .FirstOrDefaultAsync(item => item.Id == id && item.IsActive);
 
             return category?.Products ?? Enumerable.Empty<Product>();
         }
 
         public async Task<int> GetCategoriesCountAsync(CancellationToken cancellationToken)
         {
-            return await _dbcontext.Categories.CountAsync(cancellationToken);
+            return await _dbcontext.Categories.CountAsync(item => item.IsActive, cancellationToken);
         }
 
         public async Task<IEnumerable<Category>> GetCategoriesAsync(int page, int pageSize, CancellationToken cancellationToken)
@@ -77,6 +79,7 @@ namespace ProductMicroservice.Infrastructure.Repositories
             int offset = (page - 1) * pageSize;
             return await _dbcontext.Categories
                  .AsNoTracking()
+                 .Where(item => item.IsActive)
                  .OrderBy(item => item.Id)
                  .Skip(offset)
                  .Take(pageSize)

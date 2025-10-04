@@ -2,9 +2,7 @@
 using InventoryMicroservice.Core.DTO;
 using InventoryMicroservice.Core.Result;
 using InventoryMicroservice.Core.ServiceContracts;
-using InventoryMicroservice.Infrastructure.DatabaseContext;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace InventoryMicroservice.API.Controllers;
 
@@ -12,25 +10,21 @@ namespace InventoryMicroservice.API.Controllers;
 [ApiController]
 public class InventoriesController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
     private readonly IInventoryService _inventoryService;
 
-    public InventoriesController(ApplicationDbContext context, IInventoryService inventoryService)
+    public InventoriesController(IInventoryService inventoryService)
     {
-        _context = context;
         _inventoryService = inventoryService;
     }
 
     // GET: api/Inventories/5
-    /// <summary>
-    /// Retrieves the current inventory state for a specific product identified by SKU.
-    /// </summary>
-    /// <param name="sku">The SKU (Stock Keeping Unit) code of the product.</param>
-    /// <returns>Inventory details of the specified product.</returns>
+    [ProducesResponseType(typeof(InventoryItemResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{sku}")]
-    public async Task<ActionResult<InventoryItemResponse>> GetInventoryBySku(string sku)
+    public async Task<ActionResult<InventoryItemResponse>> GetInventoryBySku(string sku,CancellationToken cancellationToken)
     {
-        Result<InventoryItemResponse> result = await _inventoryService.GetInventoryBySku(sku);
+        Result<InventoryItemResponse> result = await _inventoryService.GetInventoryBySkuAsync(sku,cancellationToken);
         if (!result.IsSuccess)
         {
             return Problem(detail: result.Message, statusCode: (int)result.StatusCode);
@@ -38,29 +32,23 @@ public class InventoriesController : ControllerBase
         return Ok(result.Value);
     }
 
-    /// <summary>
-    /// Retrieves the inventory details for all products.
-    /// </summary>
-    /// <returns>List of inventory items.</returns>
+    [ProducesResponseType(typeof(IEnumerable<InventoryItemResponse>), StatusCodes.Status200OK)]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<InventoryItem>>> GetInventories()
+    public async Task<ActionResult<IEnumerable<InventoryItem>>> GetInventories([FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        return await _context.InventoryItems.ToListAsync();
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 20);
+
+        PagedResult<InventoryItemResponse> result = await _inventoryService.GetAllInventories(page,pageSize,cancellationToken);
+
+        return Ok(result);
     }
 
     // POST: api/Invetories/{sku}/adjust
-    /// <summary>
-    /// Adjusts the available quantity for a specific product.
-    /// </summary>
-    /// <param name="sku">The SKU (Stock Keeping Unit) code of the product to update.</param>
-    /// <param name="adjustment">
-    /// The quantity change to apply. Positive values increase stock, negative values decrease it.
-    /// </param>
-    /// <returns>No content if successful, or an error message if the operation fails.</returns>
     [HttpPatch("{sku}/adjust")]
-    public async Task<IActionResult> AdjustInventory(string sku, [FromBody] InventoryUpdateRequest request)
+    public async Task<IActionResult> AdjustInventory(string sku, [FromBody] InventoryUpdateRequest request, CancellationToken cancellationToken)
     {
-        Result<InventoryItemResponse> response = await _inventoryService.AdjustInventoryItem(sku, request);
+        Result<InventoryItemResponse> response = await _inventoryService.AdjustInventoryItem(sku, request,cancellationToken);
         if (!response.IsSuccess)
         {
             return Problem(detail: response.Message, statusCode: (int)response.StatusCode);

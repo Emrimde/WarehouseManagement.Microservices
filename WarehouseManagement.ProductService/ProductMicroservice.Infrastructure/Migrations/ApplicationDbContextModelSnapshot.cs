@@ -6,10 +6,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ProductMicroservice.Infrastructure.DatabaseContext;
 
-
 #nullable disable
 
-namespace ProductService.Infrastructure.Migrations
+namespace ProductMicroservice.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -23,22 +22,34 @@ namespace ProductService.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ProductService.Core.Domain.Entities.Category", b =>
+            modelBuilder.Entity("ProductMicroservice.Core.Domain.Entities.Category", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeleteAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("ProductService.Core.Domain.Entities.Product", b =>
+            modelBuilder.Entity("ProductMicroservice.Core.Domain.Entities.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -82,15 +93,20 @@ namespace ProductService.Infrastructure.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("ProductService.Core.Domain.Entities.Product", b =>
+            modelBuilder.Entity("ProductMicroservice.Core.Domain.Entities.Product", b =>
                 {
-                    b.HasOne("ProductService.Core.Domain.Entities.Category", "Category")
-                        .WithMany()
+                    b.HasOne("ProductMicroservice.Core.Domain.Entities.Category", "Category")
+                        .WithMany("Products")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("ProductMicroservice.Core.Domain.Entities.Category", b =>
+                {
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

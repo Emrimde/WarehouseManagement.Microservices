@@ -137,7 +137,7 @@ public class CategoryService : ICategoryService
         {
             return Result.Failure("Name must be 3-30 characters", StatusCodeEnum.BadRequest);
         }
-        if (await _categoryRepo.IsCategoryNameUnique(name, cancellationToken))
+        if (!await _categoryRepo.IsCategoryNameUnique(name, cancellationToken))
         {
             return Result.Failure("Category isn't unique", StatusCodeEnum.Conflict);
         }

@@ -8,9 +8,11 @@ public static class InventoryItemMapper
     {
         return new InventoryItemResponse
         (
-            inventoryItem.QuantityOnHand - inventoryItem.QuantityReserved,
-            inventoryItem.QuantityReserved,
+            inventoryItem.StockKeepingUnit,
+            inventoryItem.ProductName,
             inventoryItem.QuantityOnHand,
+            inventoryItem.QuantityReserved,
+            inventoryItem.QuantityOnHand - inventoryItem.QuantityReserved,
             inventoryItem.UnitPrice
         );
     }

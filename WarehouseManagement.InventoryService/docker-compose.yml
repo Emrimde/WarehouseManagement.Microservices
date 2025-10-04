@@ -1,49 +1,4 @@
 services:
-  ordermicroservice.api:
-    image: ordermicroservice:latest
-    ports:
-        - 4001:8080
-        - 4002:8081
-    networks:
-        - warehouse-network
-        - order-postgres-network
-    environment:
-        - DB_NAME=OrdersDb
-        - DB_PORT=5432
-        - DB_PASSWORD=admin
-        - DB_USERNAME=postgres
-        - DB_HOST=order-db
-        - RABBITMQ_ORDER_EXCHANGE=order.exchange
-        - ASPNETCORE_ENVIRONMENT=Development
-        - RABBIT_MQ_HOSTNAME=rabbitmqq
-        - RABBIT_MQ_PORT=5672
-        - RABBIT_MQ_PASSWORD=admin
-        - RABBIT_MQ_USERNAME=user
-        - REDIS_HOST=redis
-        - REDIS_PORT=6379
-      
-  productmicroservice-api:
-    image: productmicroservice:latest
-    ports:
-      - 5049:8080
-      - 6002:8081
-    environment:
-        - HOST=product-db
-        - USERNAME=postgres
-        - PASSWORD=admin
-        - DATABASE=ProductsDb
-        - ASPNETCORE_ENVIRONMENT=Development
-        - REDIS_HOST=redis
-        - REDIS_PORT=6379
-        - RABBITMQ_HOSTNAME=rabbitmqq
-        - RABBITMQ_USERNAME=user
-        - RABBITMQ_PASSWORD=admin
-        - RABBITMQ_PORT=5672
-        - RABBITMQ_ProductExchange=product.exchange
-    networks:
-        - product-postgres-network
-        - warehouse-network
-
   inventorymicroservice-api:
     image: inventorymicroservice
     build:
@@ -72,29 +27,74 @@ services:
         - inventory-postgres-network
         - warehouse-network
 
-  pickingmicroservice-api:
-    image: pickingmicroservice:latest
+  # ordermicroservice-api:
+  #   image: ordermicroservice:latest
+  #   ports:
+  #       - 4001:8080
+  #       - 4002:8081
+  #   networks:
+  #       - warehouse-network
+  #       - order-postgres-network
+  #   environment:
+  #       - DB_NAME=OrdersDb
+  #       - DB_PORT=5432
+  #       - DB_PASSWORD=admin
+  #       - DB_USERNAME=postgres
+  #       - DB_HOST=order-db
+  #       - RABBITMQ_ORDER_EXCHANGE=order.exchange
+  #       - ASPNETCORE_ENVIRONMENT=Development
+  #       - RABBIT_MQ_HOSTNAME=rabbitmqq
+  #       - RABBIT_MQ_PORT=5672
+  #       - RABBIT_MQ_PASSWORD=admin
+  #       - RABBIT_MQ_USERNAME=user
+  #       - REDIS_HOST=redis
+  #       - REDIS_PORT=6379
+      
+  productmicroservice-api:
+    image: productmicroservice:latest
     ports:
-        - 8000:8080
-        - 8001:8081
-    networks:
-        - warehouse-network
-        - picking-postgres-network
+      - 5049:8080
+      - 6002:8081
     environment:
-        - DB_NAME=PickingDb
-        - DB_PORT=5432
-        - DB_PASSWORD=admin
-        - DB_USERNAME=postgres
-        - DB_HOST=picking-db
-        - RABBITMQ_ORDER_EXCHANGE=order.exchange
+        - HOST=product-db
+        - USERNAME=postgres
+        - PASSWORD=admin
+        - DATABASE=ProductsDb
         - ASPNETCORE_ENVIRONMENT=Development
-        - RABBITMQ_HOST=rabbitmqq
-        - RABBITMQ_PORT=5672
-        - RABBITMQ_PASSWORD=admin
-        - RABBITMQ_USERNAME=user
-        - RABBITMQ_INVENTORY_EXCHANGE=inventory.exchange
         - REDIS_HOST=redis
         - REDIS_PORT=6379
+        - RABBITMQ_HOSTNAME=rabbitmqq
+        - RABBITMQ_USERNAME=user
+        - RABBITMQ_PASSWORD=admin
+        - RABBITMQ_PORT=5672
+        - RABBITMQ_ProductExchange=product.exchange
+    networks:
+        - product-postgres-network
+        - warehouse-network
+
+  # pickingmicroservice-api:
+  #   image: pickingmicroservice:latest
+  #   ports:
+  #       - 8000:8080
+  #       - 8001:8081
+  #   networks:
+  #       - warehouse-network
+  #       - picking-postgres-network
+  #   environment:
+  #       - DB_NAME=PickingDb
+  #       - DB_PORT=5432
+  #       - DB_PASSWORD=admin
+  #       - DB_USERNAME=postgres
+  #       - DB_HOST=picking-db
+  #       - RABBITMQ_ORDER_EXCHANGE=order.exchange
+  #       - ASPNETCORE_ENVIRONMENT=Development
+  #       - RABBITMQ_HOST=rabbitmqq
+  #       - RABBITMQ_PORT=5672
+  #       - RABBITMQ_PASSWORD=admin
+  #       - RABBITMQ_USERNAME=user
+  #       - RABBITMQ_INVENTORY_EXCHANGE=inventory.exchange
+  #       - REDIS_HOST=redis
+  #       - REDIS_PORT=6379
 
   order-db:
     image: postgres:latest

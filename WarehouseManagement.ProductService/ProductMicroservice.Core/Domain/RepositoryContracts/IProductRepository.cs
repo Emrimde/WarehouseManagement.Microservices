@@ -10,10 +10,11 @@ public interface IProductRepository
     Task<Product?> GetProductBySkuAsync(string sku);
    
     Task<bool> DeleteProduct(Guid id, CancellationToken cancellationToken);
-    Task<IEnumerable<Product>> GetProductsPageProjectedAsync(int page, int pageSize, string? name, ProductSearchCategoriesEnum category, CancellationToken cancellationToken);
-    Task<int> GetActiveProductsCountAsync(CancellationToken cancellationToken);
+    Task<IEnumerable<Product>> GetProductsPageProjectedAsync(int page, int pageSize, string? name, ProductSearchCategoriesEnum category, CancellationToken cancellationToken, bool showActive);
+    Task<int> GetProductsCountAsync(bool showActive, CancellationToken cancellationToken);
     Task<bool> IsCategoryExistsAsync(Guid categoryId, CancellationToken cancellationToken);
     Task<bool> IsSkuExistsAsync(string sku, CancellationToken cancellationToken);
     Task<bool> ExistsByNameInCategoryAsync(string name, Guid categoryId, CancellationToken cancellationToken);
-    Task<IEnumerable<Product>> SearchForProduct(ProductSearchCategoriesEnum category, string name, CancellationToken cancellationToken);
+    Task<bool> PermanentDeleteAsync(Guid id, CancellationToken cancellationToken);
+    Task<bool> RestoreProductAsync(Guid id, CancellationToken cancellationToken);
 }
